@@ -1,0 +1,1142 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>表单设计</title>
+    <script src="../static/js/jquery-2.1.1.js"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css" rel="stylesheet">
+    <script src="../lib/toastr/toastr.min.js"></script>
+    <link href="../lib/toastr/toastr.min.css" rel="stylesheet">
+
+	<script src="../js/require.base.js"></script>
+	<script src="../lib/vipspa.js"></script>
+	<script src="../js/common.js"></script>
+    <!--表单设计-->
+	<link href="../js/page/form/control.css?v=0.2" rel="stylesheet">
+	<link href="../js/page/form/design.css" rel="stylesheet">
+	<script src="../js/page/form/control.js?v=0.1"></script>
+	<script src="../js/page/form/control_design.js"></script>
+
+    <style id="settingCss" type="text/css">
+        .labelwidth{width:60px;}
+    </style>
+</head>
+
+<body>
+
+    <div id="wrapper">
+        <div class="assembly">
+            <h5 style="margin-left:5px;margin-top:20px">基础控件</h5>
+            <div type="TextBox"><i class="fa fa-edit"></i> 文本框</div>
+            <div type="Split"><i class="fa fa-ellipsis-h"></i> 分割线</div>
+            <div type="Table"><i class="fa fa-table"></i> 表格</div>
+            <div type="Block"><i class="fa fa-font"></i> 文字</div>
+            <div type="Card"><i class="fa fa-file-o"></i> 卡片</div>
+            <div type="Select"><i class="fa fa-toggle-down"></i> 下拉框</div>
+            <div type="Date"><i class="fa fa-calendar"></i> 日期</div>
+            <div type="TextArea"><i class="fa fa-film"></i>多行文本</div>
+            <div type="Radio"><i class="fa fa-check-circle"></i> 单选</div>
+            <div type="Check"><i class="fa fa-check-square"></i> 多选</div>
+            <div type="Check"><i class="fa fa-toggle-on"></i> 开关</div>
+            <div type="Check"><i class="fa fa-link"></i> 超链接</div>
+            <!--<div><i class="fa fa-cloud-download"></i> 其他</div>-->
+            <h5 style="margin-left:5px;line-height:50px">高级控件</h5>
+            <div type="UserInfo"><i class="fa fa-user"></i>用户信息</div>
+            <div type="OrderNo"><i class="fa fa-cc"></i>申请单号</div>
+            <div type="DeptTree"><i class="fa fa-sitemap"></i>下拉部门</div>
+            <div type="UserSelect"><i class="fa fa-group"></i>人员选择</div>
+            <div type="UserDeptSelect"><i class="fa fa-home"></i>人员部门</div>
+            <div type="TBCellSum"><i class="fa fa-bar-chart-o"></i> 列合计</div>
+            <div type="FileUpload"><i class="fa fa-paperclip"></i>附件上传</div>
+        </div>
+        <div class="draw">
+        <div id="page-wrapper" class="draw gray-bg">
+        <div class="row border-bottom">
+        </div>
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-6">
+                    <h2>表单名</h2>
+                    <small class="breadcrumb">
+                        编辑
+                    </small>
+                </div>
+                <div class="col-lg-6" style="margin-top:30px">
+                    <!--<button type="submit" class="btn btn-primary" onclick="apply()">申请</button>-->
+                    <!--<button type="submit" class="btn btn-primary" onclick="approval()">审批</button>-->
+                    <button type="submit" class="btn btn-primary" onclick="preview()">预览</button>
+                    <button type="submit" class="btn btn-primary" onclick="saveLayout()">保存</button>
+                    <button type="submit" class="btn btn-primary">代码编辑器</button>
+                </div>
+            </div>
+            <!--col position:relative和下一个加入的控件保持一致，否则删除按钮错位-->
+            <script id="Card_Tpl" type="text/html">
+                <div name="{{d.key}}" class="ibox float-e-margins col-sm-12 citem">
+                    <!--容器-->
+                    <div class="ibox-title">
+                        <h5><b>{{d.label}}</b><small>{{d.desc}}</small></h5>
+                        <div class="ibox-tools" onclick="containerClick(this)"><a><i class="fa fa-wrench"></i></a></div>
+                    </div>
+                    <div class="ibox-content ">
+                        <div class="form-horizontal ">
+                            <div class="form-group" id="Drag_{{d.key}}">
+
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-circle elem-delete" onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="Block_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group citem col-sm-{{d.col}}" style="padding-bottom:8px;padding-top:8px"><div class="{{d.color}}">{{d.label}}</div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="TextBox_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8"><input type="text" class="form-control"/></div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="TextArea_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-1 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-11"><textarea rows="{{d.rows}}" class="form-control"></textarea></div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="Select_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8">
+                        <select class="form-control" size="1">
+                            {{# for(var i=0; i<d.options.length; i++){ }}
+                            <option value="{{d.options[i].label}}">{{d.options[i].value}}</option>
+                            {{# } }}
+                        </select>
+                    </div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="UserDeptSelect_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8">
+                        <select class="form-control" size="1">
+                            {{# for(var i=0; i<d.options.length; i++){ }}
+                            <option value="{{d.options[i].label}}">{{d.options[i].value}}</option>
+                            {{# } }}
+                        </select>
+                    </div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="Table_Tpl" type="text/html">
+                <div name="{{d.key}}" class="form-group col-sm-12 citem">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            {{# for(var i=0; i<d.getColumns().length; i++){ }}
+                            <th tk="{{d.getColumns()[i].key}}" onclick="tableThClick(this,'{{d.key}}')">{{d.getColumns()[i].label}}</th>
+                            {{# } }}
+                            <th tk="{{d.key}}">操作<div class="ibox-tools" onclick="tableClick(this)"><a><i class="fa fa-wrench"></i></a></div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <!--<tr><td>1</td></tr>-->
+                    </tbody>
+                </table>
+                <button name="{{d.key}}_abtn" type="button" class="btn btn-outline btn-default" onclick="addTableRow(this,'{{d.key}}')">增加行</button>
+                <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="TableRow_Tplxxxxxxxxx" type="text/html">
+                <tr>
+                    {{# for(var i=0; i<d.columns.length; i++){ }}
+                    <td rk="{{d.columns[i].key}}">
+                        {{# if (d.columns[i].type=="TextBox") { }}
+                        <input name="{{d.columns[i].key}}" type="text" class="form-control"/>
+                        {{# } }}
+                        {{# if (d.columns[i].type=="Select") { }}
+                        <select name="{{d.columns[i].key}}" class="form-control" size="1">
+                            {{# for(var j=0; j<d.columns[i].options.length; j++){ }}
+                            <option value="{{d.columns[i].options[j].label}}">{{d.columns[i].options[j].value}}</option>
+                            {{# } }}
+                        </select>
+                        {{# } }}
+                    </td>
+                    {{# } }}
+                    <td>
+                        <button class="btn btn-danger btn-circle" type="button" onclick="delTableRow(this,'{{d.key}}')"><i class="fa fa-times"></i></button>
+                    </td>
+                </tr>
+            </script>
+            <script id="Split_Tpl" type="text/html">
+                <div class="col-lg-12 hr-line-dashed hr-line-dashed2 citem">
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'Split')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="Date_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8 input-group2 date">
+                        <input type="text" class="form-control" /><span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                    </div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="Radio_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8">
+                        {{# for(var i=0; i<d.rawoptions.length; i++){ }}
+                        <div class="radio radio-success radio-inline">
+                            <input type="radio" id="radio{{i}}" value="{{d.rawoptions[i].value}}" name="rd_{{d.key}}" class="form-control">
+                            <label for="radio{{i}}"> {{d.rawoptions[i].label}} </label>
+                        </div>
+                        {{# } }}
+                    </div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="Check_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8"><div class="checkbox checkbox-success"><input type="checkbox" class="ic form-control styled" /><label></label></div></div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="UserInfo_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8"><div class="taginput"><input class="val" type="hidden" /><span class="badge badge-success">{{d.label}}</span></div></div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="OrderNo_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8"><input readonly="readonly" type="text" class="form-control"/></div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <script id="DeptTree_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="taginput depttree" placeholder="点击选择"/>
+                        <input type="hidden" />
+                        <div class="stv"></div>
+                        <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                    </div>
+                </div>
+            </script>
+            <!--人员选择器-->
+            <script id="UserSelect_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">人员选择</label>
+                    <div class="col-sm-8">
+                        <div class="taginput emptree">
+                            点击选择
+                        </div>
+                        <input type="hidden" />
+                        <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                    </div>
+                    <!-- 模态框（Modal） -->
+                    <div class="modal fade" id="{{d.key}}">
+                        <div class="modal-dialog" style="width:500px">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                    <h4 class="modal-title">人员选择</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="form-horizontal">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" placeholder="搜索人员" />
+                                        </div>
+                                        <div class="form-group" style="margin:10px auto;">
+                                            <div class="tree-wrapper dept" style="float:left;width:60%">
+                                                <div class="emptree" style="width:100%;position:relative;"></div>
+                                            </div>
+                                            <div class="tree-wrapper emp" style="padding-top:6px">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <div style="float:left">
+                                        已选：<span class="badge badge-primary"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                    <button type="button" onclick="onUserSelect(this)" class="btn btn-primary">保存</button>
+                                </div>
+                            </div><!-- /.modal-content -->
+                        </div><!-- /.modal-dialog -->
+                    </div><!-- /.modal -->
+                </div>
+
+            </script>
+            <!--表格列合计-->
+            <script id="TBCellSum_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="reloadTableCellKey(this);controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8"><input type="text" class="form-control"/></div>
+                    <button class="btn btn-danger btn-circle elem-delete" onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
+            <!--附件上传-->
+            <script id="FileUpload_Tpl" type="text/html">
+                <div name="{{d.key}}" class="form-group col-sm-12 citem" onclick="controlClick(this)">
+                    <div>{{d.label}}</div>
+                    <div class="dropzone" style="min-height: 150px;border: 1px solid rgba(0, 0, 0, 0.3);background: white;"></div>
+                </div>
+            </script>
+            <!--<button type="submit" class="btn btn-primary" onclick="addTextBox()">添加输入框</button>-->
+            <!--<button type="submit" class="btn btn-primary" onclick="addTable()">添加表格</button>-->
+            <!--<button type="submit" class="btn btn-primary" onclick="addSplit()">添加分割线</button>-->
+            <!--<button type="submit" class="btn btn-primary" onclick="addBlock()">添加文字</button>-->
+            <!--<button type="submit" class="btn btn-primary" onclick="addCard()">添加卡片</button>-->
+            <!--<button type="submit" class="btn btn-primary" onclick="addSelect()">添加下拉框</button>-->
+        <div class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12" id="con">
+                <!--测试内容区域-->
+                    <!--测试内容end-->
+                </div>
+            </div>
+
+        </div>
+        <div class="footer">
+            <div class="pull-right">
+                10GB of <strong>250GB</strong> Free.
+            </div>
+            <div>
+                <strong>Copyright</strong> Example Company &copy; 2014-2015
+            </div>
+        </div>
+
+        </div>
+        </div>
+        <div class="propery">
+            <div class="panel blank-panel">
+                <div class="panel-heading">
+                    <div class="panel-options">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a data-toggle="tab" href="#tabField" aria-expanded="true">字段</a></li>
+                            <li class=""><a data-toggle="tab" href="#tabForm" aria-expanded="false" onclick="tabFormClick()">表单</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="tab-content">
+                        <div id="tabField" class="tab-pane active form-horizontal">
+
+                        </div>
+
+                        <div id="tabForm" class="tab-pane form-horizontal">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <script id="Property_Fields_Key_Tpl" type="text/html">
+        <div class="form-group"><label class="col-sm-4 control-label">字段名称</label>
+            <div class="col-sm-8">
+            <!--input-group m-b-->
+            <div class="input-group">
+            <div class="input-group-btn">
+            <button data-toggle="dropdown" class="btn btn-white dropdown-toggle cascader-input" type="button" aria-expanded="false"><span class="cascader-selected">{{d.selected}}</span><span class="caret"></span></button>
+        <ul class="dropdown-menu m1">
+            {{# for(var i=0; i<d.data.length; i++){ }}
+            <li><a href="#" onmouseover="showCascaderM2({{i}})" onclick="modelOneClick(this)"><span data="{{d.data[i].value}}">{{d.data[i].label}}</span><i class="fa fa-angle-right"></i></a></li>
+            {{# } }}
+        </ul>
+            {{# for(var i=0; i<d.data.length; i++){ }}
+        <ul class="dropdown-menu m2 midx-{{i}}">
+            {{# for(var j=0; j<d.data[i].children.length; j++){ }}
+            <li><a href="#" onclick="modelTwoClick(this,'{{d.key}}','{{d.data[i].children[j].required}}')"><span data="{{d.data[i].value}}${{d.data[i].children[j].value}}" class='{{d.data[i].children[j].required=="y"?"text-danger":""}}'>{{d.data[i].children[j].label}}</span></a></li>
+            {{# } }}
+        </ul>
+            {{# } }}
+        </div>
+        </div>
+        </div>
+        </div>
+    </script>
+    <script id="Property_Form_Tpl" type="text/html">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">标签宽度</label>
+            <div class="col-sm-8"><input type="text" class="form-control" value="{{d.labelwidth}}" onblur="settingValueChange(this,'labelwidth')"/></div>
+        </div>
+    </script>
+    <script id="Property_Fields_Tpl" type="text/html">
+        <div class="form-group"><label class="col-sm-4 control-label">字段名称</label>
+            <div class="col-sm-8"><input property="{{d.key}}" onblur="propertyValueChange(this,'{{d.key}}','key')" type="text" class="form-control" value="{{d.key}}"/></div>
+        </div>
+
+        <div class="form-group"><label class="col-sm-4 control-label">模型绑定</label>
+            <div class="col-sm-8">
+                <select class="form-control" size="1" name="selLevelType">
+                    <option value="" selected="">选择请假类型</option>
+                    <option value="year">年假</option>
+                    <option value="biz">事假</option>
+                </select>
+            </div>
+        </div>
+
+        {{# if (d.getProperty().indexOf("label")>=0) { }}
+        <div class="form-group"><label class="col-sm-4 control-label">标签名</label>
+            <div class="col-sm-8"><input type="text" class="form-control" value="{{d.label}}" onblur="propertyValueChange(this,'{{d.key}}','label')"/></div>
+        </div>
+        {{# } }}
+        {{# if (d.getProperty().indexOf("rows")>=0) { }}
+        <div class="form-group"><label class="col-sm-4 control-label">文本行数</label>
+            <div class="col-sm-8">
+                <select class="form-control" size="1" name="selRowsSize" onchange="propertyRowsChange(this,'{{d.key}}')">
+                    {{# for(var i=5; i>0; i--){ }}
+                    <option value="{{i}}" {{(d.col == i)?"selected":""}} >{{i}}</option>
+                    {{# } }}
+                </select>
+            </div>
+        </div>
+        {{# } }}
+        {{# if (d.getProperty().indexOf("col")>=0) { }}
+        <div class="form-group"><label class="col-sm-4 control-label">栅格格数</label>
+            <div class="col-sm-8">
+                <select class="form-control" size="1" name="selColSize" onchange="propertyColChange(this,'{{d.key}}')">
+                    {{# for(var i=12; i>0; i--){ }}
+                        <option value="{{i}}" {{(d.col == i)?"selected":""}} >{{i}}</option>
+                    {{# } }}
+                    <!--<option value="12">12</option><option value="11">11</option><option value="10">10</option>-->
+                    <!--<option value="9">9</option><option value="8">8</option><option value="7">7</option>-->
+                    <!--<option value="6">6</option><option value="5">5</option><option value="4">4</option>-->
+                    <!--<option value="3">3</option><option value="2">2</option><option value="1">1</option>-->
+                </select>
+            </div>
+        </div>
+        {{# } }}
+        <!--数据接口-->
+        {{# if (d.getProperty().indexOf("dataurl")>=0) { }}
+        <div class="form-group"><label class="col-sm-4 control-label">数据接口</label>
+            <div class="col-sm-8"><input type="text" class="form-control" value="{{d.dataurl}}" onblur="propertyValueChange(this,'{{d.key}}','dataurl')"/></div>
+        </div>
+        {{# } }}
+        <!--描述-->
+        {{# if (d.getProperty().indexOf("desc")>=0) { }}
+        <div class="form-group"><label class="col-sm-4 control-label">描述</label>
+            <div class="col-sm-8"><input type="text" class="form-control" value="{{d.desc}}" onblur="propertyValueChange(this,'{{d.key}}','desc')"/></div>
+        </div>
+        {{# } }}
+        <!--颜色样式-->
+        {{# if (d.getProperty().indexOf("color")>=0) { }}
+        <div class="form-group"><label class="col-sm-4 control-label">文本颜色</label>
+            <div class="col-sm-8">
+                <select class="form-control" size="1" onchange="propertyValueChange(this,'{{d.key}}','color')">
+                    <option value="" selected="">选择样式</option>
+                    <option value="text-success">浅蓝</option>
+                    <option value="text-info">亮蓝</option>
+                    <option value="text-danger">亮红</option>
+                </select>
+            </div>
+        </div>
+        {{# } }}
+        <!--表格列-->
+        {{# if (d.getProperty().indexOf("refkey")>=0) { }}
+        <div class="form-group"><label class="col-sm-4 control-label">表格列</label>
+            <div class="col-sm-8">
+                <select class="form-control" size="1" name="selTableColKey" onchange="propertyValueChange(this,'{{d.key}}','refkey')">
+                    <option>---请选择表格列---</option>
+                    {{# for(var i=0; i<d.options.length; i++){ }}
+                    <option value="{{d.options[i].value}}" {{(d.options[i].value == d.refkey)?"selected":""}} >{{d.options[i].label}}</option>
+                    {{# } }}
+                </select>
+            </div>
+        </div>
+        {{# } }}
+        <!--radio-->
+        {{# if (d.getType()=="Radio") { }}
+        <table class="table table-bordered" id="propertyRadio">
+            <thead>
+            <tr><th>编码</th><th>显示</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            {{# for(var i=0; i<d.rawoptions.length; i++){ }}
+            <tr>
+                <td><input readonly type="text" class="form-control" value="{{d.rawoptions[i].value}}"/></td>
+                <td><input readonly type="text" class="form-control" value="{{d.rawoptions[i].label}}"/></td>
+                <td><button type="button" class="btn btn-w-m btn-danger" onclick="propertyDelRadioItem(this ,'{{d.key}}','{{i}}')">删除</button></td>
+            </tr>
+            {{# } }}
+            </tbody>
+        </table>
+        <div class="form-group">
+            <div class="col-sm-4">
+                <input type="text" id="propertyRadioValue" placeholder="编码" class="form-control" />
+            </div>
+            <div class="col-sm-4">
+                <input type="text" id="propertyRadioLabel" placeholder="显示" class="form-control" />
+            </div>
+            <div class="col-sm-4">
+                <button class="btn btn-primary btn-sm" onclick="propertyAddRadioItem('{{d.key}}')">增加项</button>
+            </div>
+        </div>
+        {{# } }}
+        <!--table-->
+        {{# if (d.getType()=="Table") { }}
+        <table class="table table-bordered" id="propertyTable">
+            <thead>
+            <tr><th>列控件类型</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            {{# for(var i=0; i<d.getColumns().length; i++){ }}
+            <tr>
+                <!--<td><select class="form-control" size="1"><option value="TextBox" {{d.getColumns()[i].getType()=="TextBox"?"selected":""}}>文本框</option><option value="Select" {{d.getColumns()[i].getType()=="Select"?"selected":""}}>下拉框</option></select></td>-->
+                <td><input readonly type="text" class="form-control" value="{{d.getColumns()[i].getType()}}"/></td>
+                <td><button type="button" class="btn btn-w-m btn-danger" onclick="propertyDelTableCol(this ,'{{d.key}}','{{d.getColumns()[i].key}}')">删除</button></td>
+            </tr>
+            {{# } }}
+            </tbody>
+        </table>
+        <!--<button type="button" class="btn btn-outline btn-default" onclick="propertyAddTableCol('{{d.key}}')">增加列</button>-->
+        <div class="btn-group open">
+            <button data-toggle="dropdown" class="btn btn-primary btn-sm dropdown-toggle" aria-expanded="true">增加列 <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+                <li><a href="#" onclick="propertyAddTableCol('TextBox','{{d.key}}')">文本框</a></li>
+                <li><a href="#" onclick="propertyAddTableCol('Select','{{d.key}}')">下拉框</a></li>
+                <li><a href="#" onclick="propertyAddTableCol('Date','{{d.key}}')">日期</a></li>
+                <li class="divider"></li>
+                <li><a href="#">其他</a></li>
+            </ul>
+        </div>
+        {{# } }}
+
+    </script>
+    <script id="Poperty_Check_Tpl" type="text/html">
+
+    </script>
+    <!-- Mainly scripts -->
+    <script src="../lib/laytpl.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="../static/js/inspinia.js"></script>
+
+    <!-- Data picker -->
+    <script src="../lib/datapicker/bootstrap-datepicker.js"></script>
+    <link href="../lib/datapicker/datepicker3.css" rel="stylesheet">
+    <!-- iCheck -->
+    <script src="../lib/sortable.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                // $('.i-checks').iCheck({
+                //     checkboxClass: 'icheckbox_square-green',
+                //     radioClass: 'iradio_square-green',
+                // });
+                $('.input-group2.date').datepicker({
+                });
+                return;
+                //测试加载配置
+                var CONF = {
+                    "Card1629105092936":{"type":"Card","col":12,"label":"标题","key":"Card1629105092936","desc":"描述"},
+                    "fm_bx_info$order_no":{"type":"OrderNo","col":"6","label":"申请单号","key":"fm_bx_info$order_no","dataurl":"http://localhost:8880/api/common/billcode_gen/bx"},
+                    "fm_bx_info$emp_id":{"type":"UserInfo","col":"6","label":"用户信息","key":"fm_bx_info$emp_id","dataurl":"http://localhost:8880/api/user"},
+                    "fm_bx_info$dept_code":{"type":"Select","col":"3","label":"下拉框","key":"fm_bx_info$dept_code","dataurl":"http://localhost:8880/api/select","options":[]},
+                    "fm_bx_info$occurs_dept_code":{"type":"DeptTree","col":"4","label":"下拉部门","key":"fm_bx_info$occurs_dept_code","dataurl":"http://localhost:8880/dept/list/all","options":[],"value":""},
+                    "Table1629256781548":{"type":"Table","col":12,"key":"Table1629256781548","columns":[{"type":"Select","col":"4","label":"下拉框","key":"fm_bx_detail$item_code","dataurl":"http://localhost:8880/api/select","options":[]},{"type":"TextBox","col":"4","label":"文本框","key":"fm_bx_detail$amount"}]}
+                };
+                for(k in CONF) {
+                    if (CONF[k].type == "Table") {
+                        var table = new TableControl(k);
+                        //属性
+                        for (p in CONF[k]) {
+                            table[p] = CONF[k][p];
+                        }
+                        table.columns = [];  //清空属性设置的数据，只添加控件对象
+                        CONF[k].columns.forEach(function (v) {
+                            console.log("反向构造表头类型", v.type);
+                            var col = eval("new " + v.type + "Control('" + v.key + "')");
+                            for (cp in v) {
+                                col[cp] = v[cp];
+                            }
+                            table.addColumn(col);
+                        });
+                        $$Controls.addControl(table);
+                        continue
+                    }
+                    var control = eval("new " + CONF[k].type + "Control('" + k + "')");
+                    //属性
+                    for (p in CONF[k]) {
+                        control[p] = CONF[k][p];
+                    }
+                    //处理外层Card的拖动层级，否则内部不能独立拖动 id="Drag_Card1629105092936"
+                    if (CONF[k].type == "Card") {
+                        var container0 = document.getElementById("Drag_" + k);
+                        new Sortable(container0, {
+                            draggable: '.citem',
+                            group: 'nested',
+                            animation: 150,
+                            fallbackOnBody: true,
+                            swapThreshold: 0.65
+                        });
+                    }
+                    $$Controls.addControl(control);
+                }
+            });
+        </script>
+    <script>
+        var CURRENT_CONTROL;
+        var CONF_DATA = [];
+        var topCon = document.getElementById('con');
+        new Sortable(topCon, {
+            group: 'nested',
+            animation: 150,
+            fallbackOnBody: true,
+            swapThreshold: 0.65
+        });
+        function redrawTable(data) {
+            var tpl = document.getElementById('Table_Tpl').innerHTML; //读取模版
+            laytpl(tpl).render(data, function(render) {
+                //$("[name='"+data.key+"_abtn']").remove();
+                $("[name='"+data.key+"']")[0].outerHTML = render;
+            });
+        }
+        function redrawRadio(data) {
+            var tpl = document.getElementById('Radio_Tpl').innerHTML; //读取模版
+            laytpl(tpl).render(data, function(render) {
+                $("[name='"+data.key+"']")[0].outerHTML = render;
+            });
+        }
+        function addTableRow(obj,key) {
+            var table = $$Controls.getControl(key);
+            var tpl = document.getElementById('TableRow_Tpl').innerHTML; //读取模版
+            laytpl(tpl).render(table, function(render){
+                //document.getElementById('view').innerHTML = render;
+                $("[name='"+key+"']").find("tbody").append($(render));
+            });
+        }
+        function delTableRow(obj,key) {
+            $(obj).parent().parent().remove();
+        }
+    </script>
+    <script>
+        var $$Controls = {
+            settings:{labelwidth:"60px"},
+            controls:{},
+            addControl:function (obj) {
+                this.controls[obj.key] = obj;
+            },
+            deleteControl:function(key){
+                delete this.controls[key];
+            },
+            deleteTableCol:function(tbKey,colKey){
+                for(var i=0;i<this.controls[tbKey].columns.length;i++){
+                    if(this.controls[tbKey].columns[i].key == colKey){
+                        this.controls[tbKey].columns.splice(i,1);  //删除第i个元素
+                        return;
+                    }
+                }
+            },
+            getControls:function () {
+                return this.controls;
+            },
+            getControl:function (key) {
+                return this.controls[key];
+            },
+            changeProperty:function (key,obj) {
+                this.controls[key] = obj;
+            },
+            changeKey:function (oldKey,newKey) {
+                console.log('old/new key:',oldKey,newKey)
+                var newCon;
+                if(this.controls[oldKey]) {
+                    console.log('外层组件')
+                    this.controls[newKey] = this.controls[oldKey];
+                    this.controls[newKey].key = newKey;
+                    delete this.controls[oldKey];
+                    newCon = this.controls[newKey];
+                } else {
+                    console.log('内层组件');
+                    for(tk in this.controls){
+                        if(tk.indexOf('Table')==0){  //表格控件内的
+                            for(var i=0;i<this.controls[tk].columns.length;i++){
+                                if(this.controls[tk].columns[i].key == oldKey){
+                                    this.controls[tk].columns[i].key = newKey;
+                                    newCon = this.controls[tk].columns[i];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                console.log('return new con:',newCon);
+                return newCon;
+            }
+        };
+        var $$Property = {
+            showField:function (obj) {//显示属性面板，并处理控件激活样式
+                //先清空
+                $("#tabField").html("");
+                var data = obj;
+                var tpl = document.getElementById('Property_Fields_Tpl').innerHTML; //读取模版
+                laytpl(tpl).render(data, function(render){
+                    //document.getElementById('view').innerHTML = render;
+                    $("#tabField").append($(render));
+                    //处理样式
+                    setCurrentControl(obj.key);
+                });
+                var keyData = {key:data.key,selected:"",data:CONF_DATA};
+                //绑定模型下拉
+                var arr = data.key.split("$");
+                if(arr.length>1){
+                    for(i in CONF_DATA) {
+                        if(CONF_DATA[i].value == arr[0]) {
+                            keyData.selected = CONF_DATA[i].label;
+                            for(j in CONF_DATA[i].children) {
+                                if(CONF_DATA[i].children[j].value == arr[1])
+                                    keyData.selected = keyData.selected + "/" + CONF_DATA[i].children[j].label;
+                            }
+                        }
+                    }
+                }
+                var tplKey = document.getElementById('Property_Fields_Key_Tpl').innerHTML; //读取模版
+                laytpl(tplKey).render(keyData, function(render){
+                    $($("#tabField").children()[0]).before(render);
+                });
+            },
+            showFieldByKey:function (key){
+               var con = $$Controls.getControl(key);
+               this.showField(con);
+            },
+        };
+        function CardControl(key) {
+            this.type = "Card";
+            this.col = 12;
+            this.label = "标题";
+            this.key = key?key:'Card'+new Date().getTime();
+            this.desc = "描述";
+            this.getType = function () {
+                return this.type;
+            }
+            this.getProperty = function () {
+                return ['col','key','label','desc']
+            }
+        };
+        function BlockControl(key) {
+            this.type = "Block";
+            this.col = 12;
+            this.label = "文字";
+            this.key = key?key:'Block'+new Date().getTime();
+            this.getType = function () {
+                return this.type;
+            }
+            this.getProperty = function () {
+                return ['col','key','label','color']
+            }
+        };
+        function TableControl(key) {
+            this.type = "Table";
+            this.col = 12;
+            this.key = key?key:'Table'+new Date().getTime();
+            this.columns = [];  //Control对象列表
+            this.getType = function () {
+                return this.type;
+            };
+            this.getProperty = function () {
+                return ['col','key']
+            };
+            this.addColumn = function (control) {
+                this.columns.push(control);
+            };
+            this.getColumns = function () {
+                return this.columns
+            };
+            this.getColumn = function (key) {
+                var column;
+                this.columns.forEach(function(v) {
+                    if(v.key == key){
+                        column = v;
+                        return;
+                    }
+                });
+                return column;
+            }
+        }
+        function UserInfoControl(key) {
+            this.type = "UserInfo";
+            this.col = 12;
+            this.label = "用户信息";
+            this.key = key?key:'UserInfo'+new Date().getTime();
+            this.dataurl = "";
+            this.getType = function () {
+                return this.type;
+            }
+            this.getProperty = function () {
+                return ['col','key','label','dataurl']
+            }
+        };
+        //控件被点击激活
+        function tableClick(obj) {
+            controlClick($(obj).parent().parent().parent().parent().parent()[0]); //div/th/tr/thread->table->div
+        }
+        function containerClick(obj) {
+            controlClick($(obj).parent().parent()[0]);
+        }
+        function controlClick(obj) {
+            $$Property.showFieldByKey($(obj).attr("name"));
+        }
+        function reloadTableCellKey(obj){
+            var sumCon = $$Controls.getControl($(obj).attr("name"));
+            for(k in $$Controls.controls){
+                if(k.indexOf("Table")==0){
+                    for(idx in $$Controls.controls[k].columns){
+                        sumCon.options.push({"value":$$Controls.controls[k].columns[idx].key,"label":$$Controls.controls[k].columns[idx].label+"["+k+"]"});
+                    }
+                }
+            }
+        }
+        function setCurrentControl(key) {
+            var obj = $("[name='"+key+"']");
+            if(obj.length==0){
+                console.log('控件name为空，table th tk');
+                obj = $("[tk='"+key+"']");
+            }
+            // if(CURRENT_CONTROL) {
+            //     CURRENT_CONTROL.removeClass("con-active");
+            // }
+            // CURRENT_CONTROL = obj;
+            $("div").removeClass("con-active");
+            obj.addClass("con-active");
+        }
+    </script>
+    <script>
+        function settingValueChange(obj,key) {
+            $$Controls.settings.labelwidth = $(obj).val();
+            //$(".labelwidth").css({"width":$$Controls.settings.labelwidth});
+            $("#settingCss").text(".labelwidth{width:"+$$Controls.settings.labelwidth+";}");
+        }
+        function propertyColChange(obj,key) {
+            propertyValueChange(obj,key,'col')
+        }
+        function propertyRowsChange(obj,key) {
+            propertyValueChange(obj,key,'rows')
+        }
+        function propertyAddTableCol(type,key) {
+            var rowTemp = '<tr><td><input readonly type="text" class="form-control" value="'+type+'"/></td>\n' +
+                '<td><button type="button" class="btn btn-w-m btn-danger" onclick="propertyDelTableCol(this)">删除</button></td></tr>';
+            // var rowTemp = '<tr><td><select class="form-control" size="1"><option value="TextBox">文本框</option><option value="Select">下拉框</option></select></td>\n' +
+            //     '<td><button type="button" class="btn btn-w-m btn-danger" onclick="propertyDelTableCol(this)">删除</button></td></tr>';
+            $("#propertyTable tbody").append(rowTemp);
+            //加默认数据
+            console.log("列表头控件类型",type)
+            var txt = eval("new "+type+"Control()");
+            var table = $$Controls.getControl(key);
+            table.addColumn(txt);
+            //刷新画板表格控件头
+            redrawTable(table);
+        }
+        function propertyDelTableCol(obj,tbKey,colkey) {
+            if($$Controls.getControl(tbKey).columns.length <= 1){
+                toastr.warning("表格至少需要1列");
+                return;
+            }
+            $(obj).parent().parent().remove();
+            //删除画布元素
+            $('thead').find("[tk='"+colkey+"']").remove();
+            //删除配置
+            $$Controls.deleteTableCol(tbKey,colkey);
+        }
+        function propertyAddRadioItem(key) {
+            //加默认数据
+            var radio = $$Controls.getControl(key);
+            var item = {};
+            item["value"] = $("#propertyRadioValue").val();
+            item["label"] = $("#propertyRadioLabel").val();
+            if(item.value == "" || item.label == ""){
+                toastr.error("编码和显示必须输入");
+                return;
+            }
+            var hasCode = false;
+            radio.rawoptions.forEach(function (v){
+                if(v.value == item.value){
+                    hasCode = true;
+                    toastr.error("已有编码为'"+"'的项");
+                    return;
+                }
+            });
+            if(hasCode) {
+                return;
+            }
+            //清空
+            $("#propertyRadioValue").val("");
+            $("#propertyRadioLabel").val("");
+            radio.rawoptions.push(item);
+
+            var rowTemp = '<tr><td><input readonly type="text" class="form-control" value="'+item.value+'"/></td>\n' +
+                '<td><input readonly type="text" class="form-control" value="'+item.label+'"/></td>\n' +
+                '<td><button type="button" class="btn btn-w-m btn-danger" onclick="propertyDelRadioItem(this,\''+key+'\',\''+(radio.rawoptions.length-1)+'\')">删除</button></td></tr>';
+            $("#propertyRadio tbody").append(rowTemp);
+
+            //刷新控件展示
+            redrawRadio(radio);
+        }
+        function propertyDelRadioItem(obj,conKey,idx) {
+            var radio = $$Controls.getControl(conKey);
+            var value = $(obj).parent().parent().find("input").eq(0).val();
+            var index = 0;
+            radio.rawoptions.forEach(function(v){
+                if(v.value == value){
+                    index++;
+                    return;
+                }
+            })
+            console.log("delete radio item:",index);
+            radio.rawoptions.splice(index,1);
+            //删除配置
+            $(obj).parent().parent().remove();  //btn/td/tr
+            redrawRadio(radio);
+        }
+        function tableThClick(obj,tbKey) {
+            var key = $(obj).attr("tk");
+            var table = $$Controls.getControl(tbKey);
+            var col = table.getColumn(key);
+            $$Property.showField(col);
+        }
+        function propertyValueChange(obj,controlKey,pKey) {
+            var cons = $$Controls.getControls();
+            var data;
+            for(var k in cons){
+                if(controlKey==k){  //找到控件数据
+                    if(pKey == "key"){
+                        $$Controls.changeKey(controlKey,$(obj).val());
+                        data = $$Controls.getControls()[$(obj).val()];
+                        break;
+                    }
+                    cons[controlKey][pKey] = $(obj).val();
+                    $$Controls.changeProperty(k,cons[k]);
+                    data = cons[controlKey];
+                    break;
+                }
+                //表格内
+                if(k.indexOf("Table")==0) {
+                    var tableCol = cons[k].getColumns();
+                    for (var i=0;i<tableCol.length;i++) {
+                        if(tableCol[i].key==controlKey){  //找到列控件
+                            tableCol[i][pKey] = $(obj).val();
+                            cons[k].columns = tableCol;
+                            $$Controls.changeProperty(k,cons[k]);
+                            data = tableCol[i];
+                            return;  //不需要更新下面Dom语句
+                        }
+                    }
+                }
+            }
+            //DOM更新
+            if(data.getType() == "TextBox"/* && pKey == "label"*/) {
+                //$("[name='" + controlKey + "']").find(".control-label").text($(obj).val())
+                var label = $("[name='" + controlKey + "']");
+                if(label.length>0) {
+                    var tpl = document.getElementById('TextBox_Tpl').innerHTML; //读取模版
+                    laytpl(tpl).render(data, function (render) {
+                        label[0].outerHTML = render;
+                        setCurrentControl(controlKey);
+                    });
+                }else{
+                    console.log("table th title change");
+                    label = $("[tk='" + controlKey + "']");
+                    label.text(data.label);
+                }
+            } else if(["Block","Select","UserInfo","OrderNo","DeptTree","UserSelect","Date","TextArea","Radio","Check","TBCellSum","UserDeptSelect","FileUpload"].indexOf(data.getType())>=0){
+                var label = $("[name='" + controlKey + "']");
+                var tpl = document.getElementById(data.getType()+'_Tpl').innerHTML; //读取模版
+                laytpl(tpl).render(data, function (render) {
+                    label[0].outerHTML = render;
+                    setCurrentControl(controlKey);
+                    if(data.draw){
+                        data.draw();
+                    }
+                });
+            } else if(["Card"].indexOf(data.getType())>=0){  //label,desc 不重绘，内部可能有控件
+                var jdom = $("[name='" + controlKey + "']");
+                if(pKey == "label"){
+                    jdom.find(".ibox-title b").text($(obj).val());
+                }else if(pKey == "desc"){
+                    jdom.find(".ibox-title small").text($(obj).val());
+                }
+            }
+        }
+    </script>
+    <script src="../lib/layer/layer.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".assembly div").click(function(e) {
+                var type = $(e.target).attr("type");
+                addControl2Draw(type);
+            });
+        });
+        function appendControl2Draw(data,callback) {
+            var tpl = document.getElementById(data.getType()+'_Tpl').innerHTML; //读取模版
+            laytpl(tpl).render(data, function(render) {
+                //document.getElementById('view').innerHTML = render;
+                $("#con").append($(render));
+                callback();
+            });
+        }
+        //添加控件到画布
+        function addControl2Draw(type){
+            if(type == "Table"){
+                var table = new TableControl();
+                table.addColumn(new TextBoxControl());
+                var data = table;
+                appendControl2Draw(data, function(){
+                    //绑定数据属性面板
+                    $$Controls.addControl(table);
+                    $$Property.showField(table);
+                });
+            }else if(type == "Card"){
+                var con = new CardControl()
+                appendControl2Draw(con, function(){
+                    var container0 = document.getElementById("Drag_"+con.key);
+                    new Sortable(container0, {draggable:'.citem',
+                        group: 'nested',
+                        animation: 150,
+                        fallbackOnBody: true,
+                        swapThreshold: 0.65
+                    });
+                    $$Controls.addControl(con);
+                    $$Property.showField(con);
+                });
+            }else if(type == "Split"){
+                var data = {getType:function(){ return "Split"; }};
+                appendControl2Draw(data, function(){
+                });
+            }else{  //Block TextBox Select Date UserInfo OrderNo DeptTree UserSelect
+                var con = eval("new "+type+"Control()");
+                appendControl2Draw(con, function(){
+                    //绑定数据属性面板
+                    $$Controls.addControl(con);
+                    $$Property.showField(con);
+                    if(con.draw){  //typeof con.jsType == 'function'
+                        con.draw();
+                    }
+                });
+            }
+        }
+        function preview() {
+            //https://www.jianshu.com/p/cbfe5f910bf7#comments
+            var raw = $(".draw");
+            raw.find(".elem-delete").remove();
+            var lid = layer.open({
+                type: 2,
+                title: 'iframe父子操作',
+                maxmin: true,
+                shadeClose: true, //点击遮罩关闭层
+                area : [raw.width()+40+'px' , '520px'],
+                content: 'http://localhost:9001/form_basic2preview.html?id='+new Date().getTime(),
+                success: function (layero, index) {
+                    //向layer页面传值，传值主要代码
+                    var body = layer.getChildFrame('body', index);
+                    //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+                    var iframeWin = window[layero.find('iframe')[0]['name']];
+                    //contentWindow.initFormData({"a":"123"});
+                    var contentWindow = $("#layui-layer-iframe" + index)[0].contentWindow;
+                    $("#layui-layer-iframe" + index).contents().find(".draw").html(raw.html());
+                    $("#layui-layer-iframe" + index).contents().find(".draw").width(raw.width());
+                    contentWindow.initFormData($$Controls.getControls(),$$Controls.settings);
+                }
+            });
+        }
+        // function apply() {
+        //     var raw = $(".draw");
+        //     var lid = layer.open({
+        //         type: 2,
+        //         title: 'iframe父子操作',
+        //         maxmin: true,
+        //         shadeClose: true, //点击遮罩关闭层
+        //         area : [raw.width()+40+'px' , '520px'],
+        //         content: 'http://localhost:9001/form_basic2bind.html?id='+new Date().getTime(),
+        //         success: function (layero, index) {
+        //             //向layer页面传值，传值主要代码
+        //             var body = layer.getChildFrame('body', index);
+        //             //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+        //             var iframeWin = window[layero.find('iframe')[0]['name']];
+        //             //contentWindow.initFormData({"a":"123"});
+        //             var contentWindow = $("#layui-layer-iframe" + index)[0].contentWindow;
+        //             $("#layui-layer-iframe" + index).contents().find(".draw").html(raw.html());
+        //             $("#layui-layer-iframe" + index).contents().find(".draw").width(raw.width());
+        //             contentWindow.initFormData($$Controls.getControls());
+        //         }
+        //     });
+        // }
+        // function approval() {
+        //
+        // }
+        function modelOneClick(obj){
+
+        }
+        function modelTwoClick(obj,key,required){
+            //var keyProperty = $("[property='"+key+"']");
+            var newKey = $(obj).find("span").attr("data");
+            if(isFieldUsed(newKey)){
+                toastr.error("该字段已被占用，请选择其他字段");
+                return;
+            }
+            //keyProperty.val(newKey);
+            //$(".cascader-selected").text($(obj).find("span").text());
+            //$(".cascader-input").click();
+            if(key == newKey){
+                console.log("新老key相同，不处理:"+key);
+                return;
+            }
+            var newCon = $$Controls.changeKey(key,newKey);
+            //$$Property.showFieldByKey(newKey);  可能是表格控件的列
+            $$Property.showField(newCon);
+            $("[name='"+key+"']").attr("name",newKey);
+            $("[id='"+key+"']").attr("id",newKey);
+            changeRequired(newKey,required);  //必填
+            //表格
+            $('thead').find("[tk='"+key+"']").attr("tk",newKey);
+            //keyProperty.focus();
+        }
+        function showCascaderM2(index) {
+            console.log("menu hover",index);
+            $(".m2").hide();
+            $(".midx-"+index).show();
+        }
+        function changeRequired(key,required) {
+            if (required == "y")
+                $("[name='" + key + "']").addClass("required");
+            else
+                $("[name='" + key + "']").removeClass("required");
+        }
+        function tabFormClick() {
+            var data = $$Controls.settings;
+            var tpl = document.getElementById('Property_Form_Tpl').innerHTML; //读取模版
+            laytpl(tpl).render(data, function(render) {
+                $("#tabForm").html('');
+                $("#tabForm").append($(render));
+            });
+        }
+        function delEle(obj,key) {
+            if(key == "Split"){
+                $(obj).parent().remove();
+                return;
+            }
+            $$Controls.deleteControl(key);
+            $("[name='"+key+"']").remove();
+        }
+    </script>
+</body>
+
+</html>

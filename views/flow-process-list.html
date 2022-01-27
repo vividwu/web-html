@@ -1,0 +1,38 @@
+﻿<div class="row wrapper border-bottom white-bg page-heading"> <div class="col-lg-10"> <h2>我的流程</h2> <ol class="breadcrumb"> <li> <a href="index.html">首页</a> </li> <li> <a>工作流</a> </li> <li class="active"> <strong>我的流程</strong> </li> </ol> </div> <div class="col-lg-2"> </div> </div>
+	<div class="wrapper wrapper-content animated fadeInRight">
+			<div id="processList" class="row">
+			</div>
+
+		<!--<a data-toggle="popover" data-placement="right"-->
+		   <!--data-content="<img src='http://10.1.8.109:8250/csm-api/temp/qrcode?empNo=TP2' />">asdasd</a>-->
+	</div>
+	<script id="Box_Tpl" type="text/html">
+		{{# for(var i=0; i<d.length; i++){ }}
+        <div class="col-lg-3" onclick="goApply('{{d[i].processName}}')" style="cursor:pointer">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <span class="label label-info pull-right">{{d[i].updateTime.substr(2,8)}}更新</span>
+                    <h5>{{d[i].name}}</h5>
+                </div>
+                <div class="ibox-content"><i class="arrow2 fa fa-arrow-circle-right"></i>
+                    <h1 class="no-margins"><strong>21,300</strong></h1>
+                    <div class="stat-percent font-bold text-info">20% <i class="fa fa-bolt"></i></div>
+                    <small>{{d[i].remark}}</small>
+                </div>
+            </div>
+        </div>
+		{{# } }}
+	</script>
+
+<script src="lib/touchspin/jquery.bootstrap-touchspin.js"></script>
+<link href="lib/touchspin/jquery.bootstrap-touchspin.css" rel="stylesheet">
+<script src="lib/laytpl.js"></script>
+<script type="text/javascript">
+
+
+</script>
+<style>
+    .arrow2{
+      float: right;color:#ed5565;font-size:18px;
+    }
+</style>

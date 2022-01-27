@@ -1,0 +1,227 @@
+﻿<div class="row wrapper border-bottom white-bg page-heading"> <div class="col-lg-10"> <h2>流程申请</h2> <ol class="breadcrumb"> <li> <a href="index.html">首页</a> </li> <li> <a>工作流</a> </li> <li class="active"> <strong>流程申请</strong> </li> </ol> </div>
+	<div class="col-lg-2"> <h2><button class="btn btn-info btn-outline" onclick="showHistory()" type="button"><i class="fa fa-clock-o"></i> 审批历史</button> <button class="btn btn-success btn-outline" type="button" onclick="showFlow()"><i class="fa fa-picture-o"></i> 流程图</button></h2> </div> </div>
+	<div class="wrapper wrapper-content animated fadeInRight">
+			<div class="row">
+				<fieldset disabled>
+				<div class="col-lg-12" id="con">
+					<!--测试内容区域-->
+					<!--测试内容end-->
+				</div></fieldset>
+				<!--con-->
+			</div>
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="ibox float-e-margins col-sm-12" >
+					<div class="ibox-title">
+						<h5>
+							<b class="text-warning">审批意见</b><small></small>
+						</h5>
+               		</div>
+					<div class="ibox-content">
+						<div class="form-horizontal">
+							<div class="form-group">
+									<textarea rows="3" id="approveReason" class="form-control"></textarea>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-12" id="opBtns" style="margin-bottom:20px;">
+				<div class="col-md-6 col-md-offset-5">
+					<button class="btn btn-primary" type="button" id="agreeBtn"><i class="fa fa-check"></i>&nbsp;同 意</button>
+					<button class="btn btn-danger" type="button" id="rejectBtn"><i class="fa fa-times"></i>&nbsp;退 回</button>
+					<button class="btn btn-warning" type="button" id="addTaskBeforeBtn"><i class="fa fa-upload"></i>&nbsp;前加签</button>
+				</div>
+			</div>
+		</div>
+	</div>
+<div>
+<!-- 模态框（表单） -->
+<div class="modal right fade" id="historyDlg">
+	<div class="modal-dialog" style="width:620px">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title">审批历史</h4>
+			</div>
+			<div class="modal-body">
+				<!--<div id="vertical-timeline" class="vertical-container dark-timeline">-->
+					<!--<div class="vertical-timeline-block">-->
+						<!--<div class="vertical-timeline-icon gray-bg"><i class="fa fa-briefcase"></i></div>-->
+						<!--<div class="vertical-timeline-content"><span class="label label-warning"> 直接领导审批</span><strong class="text-muted"> 【测试人员】 </strong><i class="fa fa-check-circle-o pull-right text-navy"></i>-->
+							<!--<p>我是意见巴拉巴拉巴拉巴拉巴拉巴拉巴拉巴拉。</p>-->
+							<!--<span class="small text-muted">2021 08:14:41</span>-->
+						<!--</div>-->
+					<!--</div>-->
+					<!--<div class="vertical-timeline-block">-->
+						<!--<div class="vertical-timeline-icon navy-bg"><i class="fa fa-edit"></i></div>-->
+						<!--<div class="vertical-timeline-content">-->
+							<!--<span class="label label-warning"> 直接领导审批</span><strong class="text-muted"> 【测试人员】 </strong>-->
+						<!--</div>-->
+					<!--</div>-->
+				<!--</div>-->
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+</div>
+
+<div>
+<!-- 模态框（表单） -->
+<div class="modal fade in" id="flowDlg">
+	<div class="modal-dialog" style="width:1000px">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title">流程图</h4>
+			</div>
+			<div class="modal-body">
+				<div id="sample" style="width:100%;margin:0 auto">
+					<!-- 图例 -->
+					<div style="padding:0px 5px 0 10px;font-color:#7e7e7f">
+						<span style="display:inline-block; height:12px; width:12px; background:#4fba4f; margin-left:6px; vertical-align:middle;"></span>
+						<label style="vertical-align:middle;">已完成步骤</label>
+						<span style="display:inline-block; height:12px; width:12px; background:#ff9001; margin-left:6px; vertical-align:middle;"></span>
+						<label style="vertical-align:middle;">待处理步骤</label>
+						<span style="display:inline-block; height:12px; width:12px; background:#87cefa; margin-left:6px; vertical-align:middle;"></span>
+						<label style="vertical-align:middle;">未经过步骤</label>
+					</div>
+					<div style="width:100%; white-space:nowrap;">
+						<div style="width: 100%; display: flex; justify-content: space-between">
+							<div id="myDiagramDiv" style="flex-grow:1; height:520px; border: solid 1px black"></div>
+						</div>
+					</div>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+</div>
+
+<div>
+<!-- 模态框（表单） -->
+<div class="modal fade" id="addTaskBeforeDlg">
+	<div class="modal-dialog" style="width:300px">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title">前加签</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row form-group">
+					<label class="col-sm-4 control-label">加签节点ID</label>
+					<div class="col-sm-8">
+						<input type="text" class="form-control" id="txbAddTaskBeforeTaskId" />
+					</div>
+				</div>
+				<div class="row form-group">
+					<label class="col-sm-4 control-label">加签人ID</label>
+					<div class="col-sm-8">
+						<input type="text" class="form-control" id="txbAddTaskBeforeAssignee" placeholder="{taskAddBefore.operator}" />
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				<button type="button" id="dlgSaveAddTaskBefore" class="btn btn-primary" onclick="saveAddTaskBefore()">添加</button>
+			</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+</div>
+<script id="HistoryRow_Tpl" type="text/html">
+	<div id="vertical-timeline" class="vertical-container dark-timeline">
+	{{# for(var i=0; i<d.length; i++){ }}
+	<div class="vertical-timeline-block">
+		{{# if (d[i].createTime!=null) { }}
+		<div class="vertical-timeline-icon gray-bg">
+			<i class="fa fa-briefcase"></i>
+		</div>
+		{{# }else{ }}
+		<div class="vertical-timeline-icon navy-bg">
+			<i class="fa fa-edit"></i>
+		</div>
+		{{# } }}
+		<div class="vertical-timeline-content"><span class="label label-warning"> {{d[i].taskName}}</span><strong class="text-muted"> 【{{d[i].operatorView}}】 </strong>
+			{{# if (d[i].action=="reject") { }}
+			<i class="fa fa-ban pull-right text-danger"></i>
+			{{# }else{ }}
+			<i class="fa fa-check-circle-o pull-right text-navy"></i>
+			{{# } }}
+			{{# if (d[i].createTime!=null) { }}
+			<p>{{d[i].action}}：{{d[i].operatorReason}}</p>
+			<span class="small text-muted">{{d[i].createTime}}</span>
+			{{# } }}
+		</div>
+	</div>
+	{{# } }}
+	</div>
+</script>
+<!--和创建表单时不一样-->
+<script id="TableRow_Tpl" type="text/html">
+	<tr>
+		{{# for(var i=0; i<d.columns.length; i++){ }}
+		<td rk="{{d.columns[i].key}}">
+			{{# if (d.columns[i].type=="TextBox") { }}
+			<input name="{{d.columns[i].key}}" value="{{d.row[d.columns[i].key]}}" type="text" class="form-control"/>
+			{{# } }}
+			{{# if (d.columns[i].type=="Select") { }}
+			<select name="{{d.columns[i].key}}" class="form-control" size="1">
+				{{# for(var j=0; j<d.columns[i].options.length; j++){ }}
+				<option
+						{{# if (d.row[d.columns[i].key]==d.columns[i].options[j].value) { }}
+						selected
+						{{# } }}
+						value="{{d.columns[i].options[j].value}}">{{d.columns[i].options[j].label}}</option>
+				{{# } }}
+			</select>
+			{{# } }}
+			{{# if (d.columns[i].type=="Date") { }}
+			<div class="input-group2 date">
+				<input name="{{d.columns[i].key}}"  value="{{d.row[d.columns[i].key]}}" type="text" class="table-field form-control" /><span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+			</div>
+			{{# } }}
+		</td>
+		{{# } }}
+		<td>
+			<button class="btn btn-danger btn-circle" type="button" onclick="delTableRow(this,'{{d.key}}')"><i class="fa fa-times"></i></button>
+		</td>
+	</tr>
+</script>
+<!--表单设计-->
+<style id="settingCss" type="text/css">
+	.labelwidth{width:75px;}
+</style>
+<style>
+	#agreeBtn { margin-left:20px;display:none; }
+	#rejectBtn { margin-left:20px;display:none; }
+	#addTaskBeforeBtn { margin-left:20px;display:none; }
+</style>
+<link href="js/page/form/control.css?v=0.4" rel="stylesheet">
+<script src="js/page/form/control.js?v=0.1"></script>
+<script src="js/page/form/control_view.js"></script>
+<script src="lib/tagsinput/bootstrap-tagsinput.js"></script>
+<link href="lib/tagsinput/bootstrap-tagsinput.css" rel="stylesheet">
+<script src="lib/treeview/bootstrap-treeview.min.js"></script>
+<link href="lib/treeview/bootstrap-treeview.min.css" rel="stylesheet">
+<!-- Data picker -->
+<link href="lib/datapicker/datepicker3.css" rel="stylesheet">
+<script src="lib/datapicker/bootstrap-datepicker.js"></script>
+<script src="lib/datapicker/bootstrap-datepicker.zh-CN.js"></script>
+<script src="lib/laytpl.js"></script>
+<script src="js/page/workflow.js"></script>
+<script src="js/page/flowview.js"></script>
+<script src="lib/diagram/go2.js"></script>
+<script type="text/javascript">
+
+
+</script>
+<style>
+	.modal.left .modal-dialog,.modal.right .modal-dialog{position:fixed;margin:auto;height:100%;-webkit-transform:translate3d(0,0,0);-ms-transform:translate3d(0,0,0);-o-transform:translate3d(0,0,0);transform:translate3d(0,0,0)}
+	.modal.left .modal-content,.modal.right .modal-content{height:100%;overflow-y:auto}
+	.modal.left .modal-body,.modal.right .modal-body{padding:15px 15px 80px}
+	.modal.left.fade .modal-dialog{left:-320px;-webkit-transition:opacity .3s linear,left .3s ease-out;-moz-transition:opacity .3s linear,left .3s ease-out;-o-transition:opacity .3s linear,left .3s ease-out;transition:opacity .3s linear,left .3s ease-out}
+	.modal.left.fade.in .modal-dialog{left:0}
+	.modal.right.fade .modal-dialog{right:-320px;-webkit-transition:opacity .3s linear,right .3s ease-out;-moz-transition:opacity .3s linear,right .3s ease-out;-o-transition:opacity .3s linear,right .3s ease-out;transition:opacity .3s linear,right .3s ease-out}
+	.modal.right.fade.in .modal-dialog{right:0}
+	.modal-content{border-radius:0;border:none}
+	.modal-header{border-bottom-color:#eee;background-color:#fafafa}
+</style>

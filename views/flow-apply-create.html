@@ -1,0 +1,71 @@
+﻿<div class="row wrapper border-bottom white-bg page-heading"> <div class="col-lg-10"> <h2>流程申请</h2> <ol class="breadcrumb"> <li> <a href="index.html">首页</a> </li> <li> <a>工作流</a> </li> <li class="active"> <strong>流程申请</strong> </li> </ol> </div> <div class="col-lg-2"> </div> </div>
+	<div class="wrapper wrapper-content animated fadeInRight">
+			<div class="row">
+				<div class="col-lg-12" id="con">
+					<!--测试内容区域-->
+					<!--测试内容end-->
+				</div>
+				<!--con-->
+				<div class="col-lg-12" id="opBtns" style="margin-bottom:20px;">
+					<div class="col-md-3 col-md-offset-9">
+					<button class="btn btn-primary" type="button" id="saveBtn"><i class="fa fa-check"></i>&nbsp;保 存</button>
+					<button class="btn btn-success" type="button" id="submitBtn"><i class="fa fa-upload"></i>&nbsp;提 交</button>
+					</div>
+				</div>
+			</div>
+	</div>
+
+<script id="TableRow_Tpl" type="text/html">
+	<tr>
+		{{# for(var i=0; i<d.columns.length; i++){ }}
+		<td rk="{{d.columns[i].key}}">
+			{{# if (d.columns[i].type=="TextBox") { }}
+			<input name="{{d.columns[i].key}}" type="text" class="table-field form-control"/>
+			{{# } }}
+			{{# if (d.columns[i].type=="Select") { }}
+			<select name="{{d.columns[i].key}}" class="table-field form-control" size="1">
+				{{# for(var j=0; j<d.columns[i].options.length; j++){ }}
+				<option value="{{d.columns[i].options[j].value}}">{{d.columns[i].options[j].label}}</option>
+				{{# } }}
+			</select>
+			{{# } }}
+			{{# if (d.columns[i].type=="Date") { }}
+			<div class="input-group2 date">
+				<input name="{{d.columns[i].key}}" type="text" class="table-field form-control" /><span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+			</div>
+			{{# } }}
+		</td>
+		{{# } }}
+		<td>
+			<button class="btn btn-danger btn-circle" type="button" onclick="delTableRow(this,'{{d.key}}')"><i class="fa fa-times"></i></button>
+		</td>
+	</tr>
+</script>
+<!--表单设计-->
+<style id="settingCss" type="text/css">
+	.labelwidth{width:75px;}
+</style>
+<style>
+	#saveBtn { margin-left:20px;display:none; }
+	#submitBtn { margin-left:20px;display:none; }
+</style>
+<link href="js/page/form/control.css?v=0.6" rel="stylesheet" type="text/css"/>
+<script src="js/page/form/control.js"></script>
+<script src="js/page/form/control_view.js?v=2"></script>
+<script src="lib/tagsinput/bootstrap-tagsinput.js"></script>
+<link href="lib/tagsinput/bootstrap-tagsinput.css" rel="stylesheet" type="text/css"/>
+<script src="lib/treeview/bootstrap-treeview.min.js"></script>
+<link href="lib/treeview/bootstrap-treeview.min.css" rel="stylesheet" type="text/css"/>
+<!-- Data picker -->
+<link href="lib/datapicker/datepicker3.css" rel="stylesheet" type="text/css"/>
+<script src="lib/datapicker/bootstrap-datepicker.js"></script>
+<script src="lib/datapicker/bootstrap-datepicker.zh-CN.js"></script>
+<script src="lib/laytpl.js"></script>
+<script src="lib/dropzone/dropzone2.js"></script>
+<script src="lib/colorbox/jquery.colorbox.js"></script>
+<link href="lib/dropzone/dropzone2.css?v=0.1" rel="stylesheet" type="text/css"/>
+<link href="lib/colorbox/colorbox.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript">
+
+
+</script>

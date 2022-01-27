@@ -1,0 +1,1136 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>表单设计</title>
+    <script src="../static/js/jquery-2.1.1.js"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/style.css" rel="stylesheet">
+    <script src="../lib/toastr/toastr.min.js"></script>
+    <link href="../lib/toastr/toastr.min.css" rel="stylesheet">
+    <script src="../lib/switchery/switchery.js"></script>
+    <link href="../lib/switchery/switchery.css" rel="stylesheet">
+    <style id="settingCss" type="text/css">
+        .labelwidth{width:60px;}
+		body{background-color:#ffffff}
+    </style>
+</head>
+
+<body>
+
+    <div id="wrapper123">
+        <button id="saveButton" class="btn btn-primary" onclick="save()">保存设计图</button>
+		<div id="sample" style="width:100%;margin: 0 auto">
+        <div style="width:100%; white-space:nowrap;">
+            <div style="width: 100%; display: flex; justify-content: space-between">
+                <div id="myPaletteDiv" style="width: 105px; margin-right: 2px; background-color: whitesmoke; border: solid 1px black"></div>
+                <div id="myDiagramDiv" style="flex-grow: 1; height: 520px; border: solid 1px black"></div>
+            </div>
+        </div>
+    </div>
+        <!--overflow-y:auto-->
+<div style="margin-top: 20px;margin-right:20px;background: #fff;width:90%;min-height:240px;">
+    <div class="row form-horizontal" id="editPanel">
+    <div id="taskProperty" style="display:none">
+        <div class="form-group">
+        <label class="col-sm-1 control-label">步骤编号</label>
+        <div class="col-sm-2"><input type="text" prop="name" id="taskNodeID" class="form-control" autocomplete="off"/></div>
+        <label class="col-sm-1 control-label">步骤名称</label>
+        <div class="col-sm-2"><input prop="displayName" id="taskNodeName" type="text" class="form-control"/></div>
+        <label class="col-sm-1 control-label">候选人标识</label>
+        <div class="col-sm-2"><input type="text" id="taskAssigneeFlag" class="form-control"/></div>
+        <label class="col-sm-1 control-label">候选人脚本</label>
+        <div class="col-sm-2"><input type="text" onfocus="onAssigneeScriptFocus(this)" id="taskAssigneeScript" class="form-control" autocomplete="off"/></div>
+        </div>
+        <div class="hr-line-dashed"></div>
+        <div class="form-group">
+            <label class="col-sm-1 control-label">绑定表单</label>
+            <div class="col-sm-2"><select id="taskAction" class="form-control"></select></div>
+            <label class="col-sm-1 control-label">审批方式</label>
+            <div class="col-sm-2"><select id="taskPerformType" class="form-control"><option value="any">任一人审批</option><option value="all">所有人审批</option></select></div>
+            <label class="col-sm-1 control-label">自动通过</label>
+            <div class="col-sm-2">
+                <input type="checkbox" id="taskAutoExecute" class="js-switch"/>
+            </div>
+            <label class="col-sm-1 control-label"></label>
+            <div class="col-sm-2"></div>
+        </div>
+    </div>
+        <div class="form-group" id="transitionProperty" style="display:none">
+            <label class="col-sm-1 control-label">连线编号</label>
+            <div class="col-sm-3"><input type="text" prop="name" id="transitionNodeID" class="form-control" autocomplete="off"></div>
+            <label class="col-sm-1 control-label">连线名称</label>
+            <div class="col-sm-3"><input prop="displayName" id="transitionNodeName" type="text" class="form-control"/></div>
+            <div class="col-sm-4"></div>
+        </div>
+        <div class="form-group" id="decisionProperty" style="display:none">
+            <label class="col-sm-1 control-label">决策编号</label>
+            <div class="col-sm-3"><input type="text" prop="name" id="decisionNodeID" class="form-control" autocomplete="off"></div>
+            <label class="col-sm-1 control-label">决策描述</label>
+            <div class="col-sm-3"><input prop="displayName" id="decisionNodeName" type="text" class="form-control"/></div>
+            <label class="col-sm-1 control-label">决策脚本</label>
+            <div class="col-sm-3"><input prop="displayName" autocomplete="off" id="decisionNodeScript" onfocus="onDecisionScriptFocus(this)" type="text" class="form-control"/></div>
+        </div>
+    </div>
+</div>
+	</div>    
+
+<!--<script src="js/layer/layer.js"></script>*/}}-->
+<script src="../lib/diagram/go2.js"></script>
+<script src="../lib/diagram/flow-desinger.js"></script>
+<script src="../lib/diagram/flow-display.js"></script>
+<script src="../lib/diagram/flow-display.js"></script>
+<script src="../js/require.base.js"></script>
+<script src="../lib/vipspa.js"></script>
+<script src="../js/common.js"></script>
+<script language="JavaScript">
+    var autoExecuteElem;
+    $(document).ready(function () {
+        //控件脚本
+        var elem = document.querySelector('.js-switch')
+        autoExecuteElem = new Switchery(elem, { size: 'small' });
+
+        var pname = Request.QueryString("pname");
+        $Ajax(SysConfig.Api.host+"/api/config/process/"+pname,function(response) {
+            if (response != null) {
+                //刷新
+                //展示配置文件为图形
+                init(response.data.flowDesignLayout==null?{}:response.data.flowDesignLayout);
+            } else {
+                toastr.error("获取数据错误!");
+            }
+        });
+        //绑定Task脚本下拉列表
+        $Ajax(SysConfig.Api.host+"/api/config/process/action/porcess_actions?processName="+pname,function(res){
+            $("#taskAction").append("<option>--请选择--</option>");
+            res.data.forEach(function(v,i) {
+                $("#taskAction").append("<option value='" + v.formCode + "'>" + v.formMemo +"("+v.formCode+")</option>");
+            });
+        });
+    });
+    var myDiagram;
+    function init(jsonStr) {
+        if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
+        var $ = go.GraphObject.make;  // for conciseness in defining templates
+
+        myDiagram =
+            $(go.Diagram, "myDiagramDiv",  // must name or refer to the DIV HTML element
+                {
+                    grid: $(go.Panel, "Grid",
+                        $(go.Shape, "LineH", { stroke: "lightgray", strokeWidth: 0.5 }),
+                        $(go.Shape, "LineH", { stroke: "gray", strokeWidth: 0.5, interval: 10 }),
+                        $(go.Shape, "LineV", { stroke: "lightgray", strokeWidth: 0.5 }),
+                        $(go.Shape, "LineV", { stroke: "gray", strokeWidth: 0.5, interval: 10 })
+                    ),
+                    "draggingTool.dragsLink": true,
+                    "draggingTool.isGridSnapEnabled": true,
+                    "linkingTool.isUnconnectedLinkValid": true,
+                    "linkingTool.portGravity": 20,
+                    "relinkingTool.isUnconnectedLinkValid": true,
+                    "relinkingTool.portGravity": 20,
+                    "relinkingTool.fromHandleArchetype":
+                        $(go.Shape, "Diamond", { segmentIndex: 0, cursor: "pointer", desiredSize: new go.Size(8, 8), fill: "tomato", stroke: "darkred" }),
+                    "relinkingTool.toHandleArchetype":
+                        $(go.Shape, "Diamond", { segmentIndex: -1, cursor: "pointer", desiredSize: new go.Size(8, 8), fill: "darkred", stroke: "tomato" }),
+                    "linkReshapingTool.handleArchetype":
+                        $(go.Shape, "Diamond", { desiredSize: new go.Size(7, 7), fill: "lightblue", stroke: "deepskyblue" }),
+                    "rotatingTool.handleAngle": 270,
+                    "rotatingTool.handleDistance": 30,
+                    "rotatingTool.snapAngleMultiple": 15,
+                    "rotatingTool.snapAngleEpsilon": 15,
+                    "undoManager.isEnabled": true
+                });
+
+        // when the document is modified, add a "*" to the title and enable the "Save" button
+        // myDiagram.addDiagramListener("Modified", function(e) {
+        //     var button = document.getElementById("saveButton");
+        //     if (button) button.disabled = !myDiagram.isModified;
+        //     var idx = document.title.indexOf("*");
+        //     if (myDiagram.isModified) {
+        //         if (idx < 0) document.title += "*";
+        //     } else {
+        //         if (idx >= 0) document.title = document.title.substr(0, idx);
+        //     }
+        // });
+        // 单击事件
+        myDiagram.addDiagramListener("ObjectSingleClicked", onObjectSingleClicked);
+        myDiagram.addDiagramListener("PartCreated", onPartCreated);
+
+
+        // Define a function for creating a "port" that is normally transparent.
+        // The "name" is used as the GraphObject.portId, the "spot" is used to control how links connect
+        // and where the port is positioned on the node, and the boolean "output" and "input" arguments
+        // control whether the user can draw links from or to the port.
+        function makePort(name, spot, output, input) {
+            // the port is basically just a small transparent square
+            return $(go.Shape, "Circle",
+                {
+                    fill: null,  // not seen, by default; set to a translucent gray by showSmallPorts, defined below
+                    stroke: null,
+                    desiredSize: new go.Size(7, 7),
+                    alignment: spot,  // align the port on the main Shape
+                    alignmentFocus: spot,  // just inside the Shape
+                    portId: name,  // declare this object to be a "port"
+                    fromSpot: spot, toSpot: spot,  // declare where links may connect at this port
+                    fromLinkable: output, toLinkable: input,  // declare whether the user may draw links to/from here
+                    cursor: "pointer"  // show a different cursor to indicate potential link point
+                });
+        }
+
+        // var nodeSelectionAdornmentTemplate =
+        //     $(go.Adornment, "Auto",
+        //         $(go.Shape, { fill: null, stroke: "deepskyblue", strokeWidth: 1.5, strokeDashArray: [4, 2] }),
+        //         $(go.Placeholder)
+        //     );
+
+        //不需要改图形大小
+        // var nodeResizeAdornmentTemplate =
+        //     $(go.Adornment, "Spot",
+        //         { locationSpot: go.Spot.Right },
+        //         $(go.Placeholder),
+        //         $(go.Shape, { alignment: go.Spot.TopLeft, cursor: "nw-resize", desiredSize: new go.Size(6, 6), fill: "lightblue", stroke: "deepskyblue" }),
+        //         $(go.Shape, { alignment: go.Spot.Top, cursor: "n-resize", desiredSize: new go.Size(6, 6), fill: "lightblue", stroke: "deepskyblue" }),
+        //         $(go.Shape, { alignment: go.Spot.TopRight, cursor: "ne-resize", desiredSize: new go.Size(6, 6), fill: "lightblue", stroke: "deepskyblue" }),
+        //
+        //         $(go.Shape, { alignment: go.Spot.Left, cursor: "w-resize", desiredSize: new go.Size(6, 6), fill: "lightblue", stroke: "deepskyblue" }),
+        //         $(go.Shape, { alignment: go.Spot.Right, cursor: "e-resize", desiredSize: new go.Size(6, 6), fill: "lightblue", stroke: "deepskyblue" }),
+        //
+        //         $(go.Shape, { alignment: go.Spot.BottomLeft, cursor: "se-resize", desiredSize: new go.Size(6, 6), fill: "lightblue", stroke: "deepskyblue" }),
+        //         $(go.Shape, { alignment: go.Spot.Bottom, cursor: "s-resize", desiredSize: new go.Size(6, 6), fill: "lightblue", stroke: "deepskyblue" }),
+        //         $(go.Shape, { alignment: go.Spot.BottomRight, cursor: "sw-resize", desiredSize: new go.Size(6, 6), fill: "lightblue", stroke: "deepskyblue" })
+        //     );
+
+        // var nodeRotateAdornmentTemplate =
+        //     $(go.Adornment,
+        //         { locationSpot: go.Spot.Center, locationObjectName: "CIRCLE" },
+        //         $(go.Shape, "Circle", { name: "CIRCLE", cursor: "pointer", desiredSize: new go.Size(7, 7), fill: "lightblue", stroke: "deepskyblue" }),
+        //         $(go.Shape, { geometryString: "M3.5 7 L3.5 30", isGeometryPositioned: true, stroke: "deepskyblue", strokeWidth: 1.5, strokeDashArray: [4, 2] })
+        //     );
+        //步骤图的样式模板
+        myDiagram.nodeTemplate =
+            $(go.Node, "Spot",
+                { locationSpot: go.Spot.Center },
+                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                ///{ selectable: true, selectionAdornmentTemplate: nodeSelectionAdornmentTemplate },
+                ///不需要{ resizable: true, resizeObjectName: "PANEL", resizeAdornmentTemplate: nodeResizeAdornmentTemplate },
+                ///不需要{ rotatable: true, rotateAdornmentTemplate: nodeRotateAdornmentTemplate },
+                new go.Binding("angle").makeTwoWay(),
+                // the main object is a Panel that surrounds a TextBlock with a Shape
+                $(go.Panel, "Auto",
+                    { name: "PANEL" },
+                    new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+                    $(go.Shape, "RoundedRectangle",  // default figure
+                        {
+                            portId: "", // the default port: if no spot on link data, use closest side
+                            fromLinkable: true, toLinkable: true, cursor: "pointer",
+                            fill: "#7e7e7f", // 默认背景色
+                            stroke: "#DDDDDD",  //去掉了边框...
+                            strokeWidth: 1   //图形边框描线
+                        },
+                        new go.Binding("figure"),
+                        new go.Binding("fill")),
+                    $(go.TextBlock,
+                        {
+                            font: "bold 11pt Helvetica, Arial, sans-serif",
+                            margin: 8,
+                            maxSize: new go.Size(160, NaN),
+                            wrap: go.TextBlock.WrapFit
+                            ///图形双击后不允许直接修改文字,editable: true
+                        },
+                        new go.Binding("text").makeTwoWay())
+                ),
+                // four small named ports, one on each side:
+                makePort("T", go.Spot.Top, false, true),
+                makePort("L", go.Spot.Left, true, true),
+                makePort("R", go.Spot.Right, true, true),
+                makePort("B", go.Spot.Bottom, true, false),
+                { // handle mouse enter/leave events to show/hide the ports
+                    mouseEnter: function(e, node) { showSmallPorts(node, true); },
+                    mouseLeave: function(e, node) { showSmallPorts(node, false); }
+                }
+            );
+
+        function showSmallPorts(node, show) {
+            node.ports.each(function(port) {
+                if (port.portId !== "") {  // don't change the default port, which is the big shape
+                    port.fill = show ? "rgba(0,0,0,.3)" : null;
+                }
+            });
+        }
+        //连接线的选中样式
+        var linkSelectionAdornmentTemplate =
+            $(go.Adornment, "Link",
+                $(go.Shape,
+                    // isPanelMain declares that this Shape shares the Link.geometry
+                    { isPanelMain: true, fill: null, stroke: "deepskyblue", strokeWidth: 0 })  // use selection object's strokeWidth
+            );
+
+        myDiagram.linkTemplate =
+            $(go.Link,  // the whole link panel
+                { selectable: true, selectionAdornmentTemplate: linkSelectionAdornmentTemplate },
+                { relinkableFrom: true, relinkableTo: true, reshapable: true },
+                {
+                    routing: go.Link.AvoidsNodes,
+                    curve: go.Link.JumpOver,
+                    corner: 5,
+                    toShortLength: 4
+                },
+                new go.Binding("points").makeTwoWay(),
+                $(go.Shape,  // the link path shape
+                    { isPanelMain: true, strokeWidth: 1 }),  //线条粗细
+                $(go.Shape,  // the arrowhead
+                    { toArrow: "Standard", stroke: null }),
+                $(go.Panel, "Auto",
+                    // new go.Binding("visible", "isSelected").ofObject(),
+                    // $(go.Shape, "RoundedRectangle",  // the link shape
+                    //     { fill: "#F8F8F8", stroke: null }),
+                    $(go.Shape, {fill: null,stroke: null}, new go.Binding("fill", "pFill")),  // 标签背景色
+                    $(go.TextBlock, //标签文本
+                        {
+                            textAlign: "center",
+                            font: "10pt helvetica, arial, sans-serif",
+                            stroke: "#555555",
+                            margin: 2,
+                            minSize: new go.Size(10, NaN)
+                            ///不允许图形上直接修改,editable: true
+                        },
+                        new go.Binding("text").makeTwoWay())
+                )
+            );
+
+        load(jsonStr);  // load an initial diagram from some JSON text
+
+        // initialize the Palette that is on the left side of the page
+        myPalette =
+            $(go.Palette, "myPaletteDiv",  // must name or refer to the DIV HTML element
+                {
+                    maxSelectionCount: 1,
+                    nodeTemplateMap: myDiagram.nodeTemplateMap,  // share the templates used by myDiagram
+                    linkTemplate: // simplify the link template, just in this Palette
+                        $(go.Link,
+                            { // because the GridLayout.alignment is Location and the nodes have locationSpot == Spot.Center,
+                                // to line up the Link in the same manner we have to pretend the Link has the same location spot
+                                locationSpot: go.Spot.Center,
+                                selectionAdornmentTemplate:
+                                    $(go.Adornment, "Link",
+                                        { locationSpot: go.Spot.Center },
+                                        $(go.Shape,
+                                            { isPanelMain: true, fill: null, stroke: "deepskyblue", strokeWidth: 0 }),
+                                        $(go.Shape,  // the arrowhead
+                                            { toArrow: "Standard", stroke: null })
+                                    )
+                            },
+                            {
+                                routing: go.Link.AvoidsNodes,
+                                curve: go.Link.JumpOver,
+                                corner: 5,
+                                toShortLength: 4
+                            },
+                            new go.Binding("points"),
+                            $(go.Shape,  // the link path shape
+                                { isPanelMain: true, strokeWidth: 1 }),
+                            $(go.Shape,  // the arrowhead
+                                { toArrow: "Standard", stroke: null })
+                        ),
+                    model: new go.GraphLinksModel([  // specify the contents of the Palette
+                        { key:"begin", text: "开始", figure: "Circle", fill: "#4fba4f", type:"begin" },
+                        { text: "-",figure: "Diamond",fill: "lightgray" },
+                        { text: "+", figure: "Diamond", fill: "pink" },
+                        { key:"decision", text: "x", figure: "Diamond", fill: "orange",type:"decision",conf:{expScript:'',displayName:''} },
+                        { key:"end", text: "结束", figure: "Circle", fill: "#CE0620", type:"end" },
+                        { key:"task", text: "新步骤", figure: "RoundedRectangle", fill: "lightskyblue", type:"task",conf:{assignee:'',assigneeScript:'',performType:'any',autoExecute:false,action:'',remark:''} }
+                    ], [
+                        // the Palette also has a disconnected Link, which the user can drag-and-drop
+                        { points: new go.List(/*go.Point*/).addAll([new go.Point(0, 0), new go.Point(30, 0), new go.Point(30, 40), new go.Point(60, 40)]) }
+                    ])
+                });
+    }
+    var ELEM_ID_SEQ = 0;
+    function newElemId(prefix) {
+        // ELEM_ID_SEQ++;
+        // return prefix+ELEM_ID_SEQ;
+        return prefix+'xxyxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+    var DesignPropertyPanel = {
+        createTaskPanel:function (node) {
+            $("#transitionProperty").hide();
+            $("#decisionProperty").hide();
+            $("#taskProperty").show();
+            $("#taskNodeID").val(node.data.key);
+            $("#taskNodeName").val(node.data.text);
+            if(node.data.conf == undefined){
+                node.data.conf = {autoExecute:false,assignee:"",assigneeScript:"",action:"",performType:"any",remark:""};
+            }
+            $("#taskAssigneeScript").val(node.data.conf.assigneeScript);
+            $("#taskAssigneeFlag").val(node.data.conf.assignee);
+            //下拉
+            $("#taskAction option").each(function(){
+                if($(this).val() == node.data.conf.action){
+                    $(this).prop("selected",true);
+                }else{
+                    $(this).removeAttr("selected");
+                }
+            });
+            //方式
+            $("#taskPerformType option").each(function(){
+                if($(this).val() == node.data.conf.performType){
+                    $(this).prop("selected",true);
+                }else{
+                    $(this).removeAttr("selected");
+                }
+            });
+
+            autoExecuteElem.element.checked = node.data.conf.autoExecute;
+            autoExecuteElem.setPosition();
+            $("#taskAutoExecute").unbind();
+            $("#taskAutoExecute").bind('change',function(){
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:autoExecuteElem.element.checked,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:node.data.conf.performType});
+                console.log("task autoexec:"+$(this).val());
+            });
+            autoExecuteElem.handleOnchange(true);
+
+            $("#taskNodeID").unbind();
+            $("#taskNodeID").bind('input propertychange', function() {
+                //node.data.key = $(this).val();
+                updateNodeData2(node,$(this).val(),$("#taskNodeName").val(),node.data.conf);
+                console.log("task id:"+$(this).val());
+            });
+            $("#taskNodeName").unbind();
+            $("#taskNodeName").bind('input propertychange', function() {
+                updateNodeData2(node,node.data.key,$(this).val(),node.data.conf);
+                console.log("task name:"+$(this).val());
+            });
+            $("#taskAssigneeFlag").unbind();
+            $("#taskAssigneeFlag").bind('input propertychange', function() {
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:$(this).val(),assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:node.data.conf.performType});
+                console.log("assignee name:"+$(this).val());
+            });
+            $("#taskAssigneeScript").unbind();
+            $("#taskAssigneeScript").bind('input change', function() {
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:$(this).val(),action:node.data.conf.action,performType:node.data.conf.performType});
+                console.log("assigneeScript name:"+$(this).val());
+            });
+            $("#taskAction").unbind();
+            $("#taskAction").bind('change', function() {
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:$(this).val(),performType:node.data.conf.performType});
+                console.log("action name:"+$(this).val());
+            });
+            $("#taskPerformType").unbind();
+            $("#taskPerformType").bind('change', function() {
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:$(this).val()});
+                console.log("perform type:"+$(this).val());
+            });
+        },
+        createTransitionPanel:function (node) {
+            $("#taskProperty").hide();
+            $("#decisionProperty").hide();
+            $("#transitionProperty").show();
+            var key="transition";
+            var value="";
+            if(node.data.text != undefined) {
+                key = node.data.key;
+                value = node.data.text;
+            } else {  //第一次生成
+                key = newElemId(key);
+                node.data.key = key;
+                //生成配置数据
+                updateNodeData2(node,node.data.key,"linkkkk",{});
+            }
+            $("#transitionNodeID").val(key);
+            $("#transitionNodeName").val(value);
+            $("#transitionNodeID").unbind();
+            $("#transitionNodeID").bind('input propertychange', function() {
+                node.data.key = $(this).val()
+                updateNodeData2(node,node.data.key,$("#transitionNodeName").val(),{});
+                console.log("transition id:"+$(this).val());
+            });
+            $("#transitionNodeName").unbind();
+            $("#transitionNodeName").bind('input propertychange', function() {
+                updateNodeData2(node,node.data.key,$("#transitionNodeName").val(),{});
+                console.log("transition name:"+$(this).val());
+            });
+        },
+        createDecisionPanel:function (node) {
+            $("#taskProperty").hide();
+            $("#transitionProperty").hide();
+            $("#decisionProperty").show();
+            $("#decisionNodeID").val(node.data.key);
+            if(node.data.conf == undefined){
+                node.data.conf = {displayName:"",expScript:""};
+            }
+            $("#decisionNodeName").val(node.data.conf.displayName);
+            $("#decisionNodeScript").val(node.data.conf.expScript);
+
+            $("#decisionNodeID").unbind();
+            $("#decisionNodeID").bind('input propertychange', function() {
+                node.data.key = $(this).val()
+                updateNodeData2(node,node.data.key,"x",node.data.conf);
+                console.log("decision id:"+$(this).val());
+            });
+            $("#decisionNodeName").unbind();
+            $("#decisionNodeName").bind('input propertychange', function() {
+                updateNodeData2(node,node.data.key,"x",{displayName:$(this).val(),expScript:node.data.conf.expScript});
+                console.log("decision name:"+$(this).val());
+            });
+            $("#decisionNodeScript").unbind();
+            $("#decisionNodeScript").bind('input change', function() {
+                updateNodeData2(node,node.data.key,"x",{displayName:node.data.conf.displayName,expScript:$(this).val()});
+                console.log("decisionScript name:"+$(this).val());
+            });
+        }
+    };
+    function onObjectSingleClicked(ev) {
+        var part = ev.subject.part;
+        showEditNode(part);
+        if(part.data.type=="task"){
+            DesignPropertyPanel.createTaskPanel(part);
+        } else if(part.type.name =="Link") {
+            DesignPropertyPanel.createTransitionPanel(part);
+        } else if(part.data.type=="decision") {
+            DesignPropertyPanel.createDecisionPanel(part);
+        }
+    };
+    function onPartCreated(ev) {
+        alert("create");
+    }
+    function showEditNode(node) {
+        if ((node instanceof go.Node) && node.data.figure === 'Circle') {
+            alert("开始和结束步骤不可编辑~");
+            return;
+        }
+    }
+    function createEditPanel(node) {
+
+    }
+
+    function createStepTemlate(node) {
+
+    }
+    function updateNodeData2(node, key,text,conf) {
+        myDiagram.startTransaction("vacate");
+        myDiagram.model.setDataProperty(node.data, "key", key);
+        myDiagram.model.setDataProperty(node.data, "text", text);
+        myDiagram.model.setDataProperty(node.data, "conf", conf);
+        myDiagram.commitTransaction("vacate");
+        console.log(node.data);
+    };
+    function updateNodeData(node,text,conf) {
+        myDiagram.startTransaction("vacate");
+        myDiagram.model.setDataProperty(node.data, "key", node.data.key);  //外部修改传进来，不会更新linkDataArray里的key
+        myDiagram.model.setDataProperty(node.data, "text", text);
+        myDiagram.model.setDataProperty(node.data, "conf", conf);
+        myDiagram.commitTransaction("vacate");
+        console.log(node.data);
+    };
+    // Show the diagram's model in JSON format that the user may edit
+    function save() {
+        //saveDiagramProperties();  // do this first, before writing to JSON
+        //document.getElementById("mySavedModel").value = myDiagram.model.toJson();
+        var jsonStr=myDiagram.model.toJson();
+        console.log("layout:", jsonStr);
+        var js = eval("("+jsonStr+")");
+        var isLostLinkKey = false;
+        js.linkDataArray.forEach(function(v){
+            if(v.key == undefined){
+                isLostLinkKey = true;
+                return;
+            }
+        });
+        if(isLostLinkKey){  //会导致生成流程XML无法流转
+            toastr.error("有连线未设置编号，请逐个检查后再保存！");
+            return;
+        }
+        //myDiagram.isModified = false;
+        var pname =  Request.QueryString("pname");
+        $Post(SysConfig.Api.host+'/api/config/process/flow/layout',
+            {processName: pname, flowDesignLayout: jsonStr}, function (res) {
+                if (res.success) {
+                    toastr.success("更新成功");
+                } else {
+                    toastr.error(res.message);
+                }
+            });
+    }
+    function load(jsonStr) {
+        myDiagram.model = go.Model.fromJson(jsonStr);///整合服务端go.Model.fromJson(document.getElementById("mySavedModel").value);
+        loadDiagramProperties();  // do this after the Model.modelData has been brought into memory
+    }
+
+    function saveDiagramProperties() {
+        myDiagram.model.modelData.position = go.Point.stringify(myDiagram.position);
+    }
+    function loadDiagramProperties(e) {
+        // set Diagram.initialPosition, not Diagram.position, to handle initialization side-effects
+        var pos = myDiagram.model.modelData.position;
+        if (pos) myDiagram.initialPosition = go.Point.parse(pos);
+    }
+//     $(document).ready(function () {
+//
+//     });
+//     var areaFlow = document.getElementById('mySavedModel');
+//     // 流程图设计器
+//     var  myDesigner= new FlowDesigner('myFlowDesignerDiv');
+//     myDesigner.initToolbar('myPaletteDiv');// 初始化控件面板
+//     myDesigner.displayFlow(areaFlow.value);// 在设计面板中显示流程图
+//
+//     // 流程图显示器
+//     var myDisplay = new FlowDisplay('myDisplayDiv');
+//
+//     /**
+//      * 保存设计图中的数据
+//      */
+//     var saveDesigner = function(){
+// //      var errMsg = myDesigner.checkData();
+// //      if(errMsg){
+// //          layer.msg(errMsg);
+// //          return;
+// //      }
+//         areaFlow.value = myDesigner.getFlowData();
+//     };
+    function onDecisionScriptFocus(obj) {
+        showScriptDialog(obj,"decision");
+        $("#dlgTitle").text("决策脚本");
+    }
+    function editorSetValue(val) {
+        if(editorDecision == undefined) {
+            editorDecision = initEditor(editorDecision, "decitionScriptCode");
+        }
+        editorDecision.setValue(val);
+        editorDecision.refresh();
+    }
+    function getDefaultFn(category){
+        if(category === "assignee"){
+            return 'let TaskCall=fn(ctx){\n\n}'
+        } else if(category === "decision"){
+            return 'let DecisionCall=fn(ctx){\n\n}'
+        }else{
+            return '错误的编辑器参数'
+        }
+    }
+    function getDefaultTestCtx(category){
+        if(category === "assignee"){
+            return '测试入参eg:{"creator":"申请人ID","operator":"节点操作人ID","name":"节点名","parent_operator":"上一节点操作人ID","parent_name":"上一节点名","args":表单提交对象}'
+        }else if(category === "decision"){
+            return '测试入参eg:{"creator":"申请人ID","operator":"节点操作人ID","name":"节点名","args":表单提交对象}}';
+        }else{
+            return '错误的编辑器参数'
+        }
+    }
+    //绑定脚本下拉列表
+    function getScriptList(pname,scriptName,category){
+        $("#decitionRemark").val("");  //清空上一次的
+        $Ajax(SysConfig.Api.host+"/api/config/process/script/porcess_scripts?processName="+pname,function(res){
+            $("#decitionName").html("");
+            $("#decitionName").append("<option>--请选择--</option>");
+            res.data.forEach(function(v,i){
+                if(category != v.category){  //只绑定本类型的下拉
+                    return;
+                }
+                var sel = "";
+                if(scriptName != "" && scriptName == v.scriptName) {
+                    sel = "selected ";
+                    $("#decitionRemark").val(v.remark);
+                }
+                $("#decitionName").append("<option "+sel+"value='"+v.scriptName+"'>"+v.scriptName+"</option>");
+            })
+        })
+    }
+    function onNewScriptNameClick(){
+        $('#decisionScriptNameDlg').modal('show');
+    }
+    function dlgDecisionNameSaveClick() {
+        var pname = Request.QueryString("pname");
+        var cat = getDlgCategory();
+        var defaultScript = 'let TaskCall=fn(ctx){\n\n}';
+        if(cat == "decision"){
+            'let DecisionCall=fn(ctx){\n\n}';
+        }
+        var data = {
+            processName: pname,
+            category: cat,
+            scriptName: $("#newScriptName").val(),
+            remark: $("#newScriptRemark").val(),
+            scriptContent: defaultScript
+        };
+        $Post(SysConfig.Api.host+"/api/config/process/script/new_script_file", data, function (res) {
+            if (res.success) {
+                $('#decisionScriptNameDlg').modal('hide');
+                $("#decitionName").find("option:selected").removeAttr("selected");
+                $("#decitionName").prepend("<option selected value='" + data.scriptName + "'>" + data.scriptName + "</option>");
+                $("#decitionRemark").val(data.remark);
+                editorDecision.setValue(defaultScript);
+                editorDecision.refresh();
+                toastr.success("创建成功!");
+            } else {
+                toastr.error(res.message);
+            }
+        });
+    }
+    function onAssigneeScriptFocus(obj){
+        showScriptDialog(obj,"assignee");
+        $("#dlgTitle").text("任务脚本");
+    }
+    function showScriptDialog(obj,category){
+        $("#dlgTitle")[0].focus();
+        //打开时清空原有的
+        $("#decitionRemark").val("");
+        $("#txbScriptText").val("");
+        $("#msgTest").text("");
+        var pname = Request.QueryString("pname");
+        $('#decisionDlg').modal('show');
+        var scriptName = $(obj).val();
+        getScriptList(pname,scriptName,category);
+        $('#decisionDlg').on('shown.bs.modal', function() {
+            getScriptContent(pname,category,scriptName);
+            $('#decisionDlg').off('shown.bs.modal');  //会重复绑定，需要取消
+        });
+    }
+function getScriptContent(pname,category,scriptName){
+    if(scriptName == ""){
+        var val = getDefaultFn(category);
+        editorSetValue(val);
+        setTestPlacehodler(category);
+        return;
+    }
+    $Ajax(SysConfig.Api.host+"/api/config/process/script/content?processName="+pname+'&scriptName='+scriptName,function(res) {
+        editorSetValue(res.data.scriptContent);
+        $("#decitionRemark").val(res.data.remark);
+        if(res.data.testContent)
+            $("#txbScriptText").val(res.data.testContent);
+        else
+            setTestPlacehodler(category);
+    })
+}
+function setTestPlacehodler(category){
+    var ctx = getDefaultTestCtx(category);
+    $("#txbScriptText").attr("placeholder",ctx);
+}
+function getDefaultTestCtx(category){
+        if(category === "assignee"){
+            return '测试入参eg:{"creator":"申请人ID","operator":"节点操作人ID","name":"节点名","parent_operator":"上一节点操作人ID","parent_name":"上一节点名","args":表单提交对象}'
+        }else if(category === "decision"){
+            return '测试入参eg:{"creator":"申请人ID","operator":"节点操作人ID","name":"节点名","args":表单提交对象}}';
+        }else{
+            return '错误的编辑器参数'
+        }
+}
+function runTest() {
+    $("#msgTest").text('测试中...');
+    var cat = getDlgCategory();
+    $Post(SysConfig.Api.host+'/api/config/process/script/test',
+        {category: cat, scriptContent: editorDecision.getValue(), testContent: $("#txbScriptText").val()},function(res){
+            if(res.success){
+                $("#msgTest").text('[成功] ' + res.data);
+            }else{
+                $("#msgTest").text('[失败] ' + res.message);
+            }
+
+        });
+}
+function handleScriptSelected(obj) {
+    var pname = Request.QueryString("pname");
+    var cat = getDlgCategory();
+    getScriptContent(pname, cat, $(obj).val());
+}
+function getDlgCategory(){
+    if($("#dlgTitle").text() == "任务脚本"){
+        return "assignee";
+    }else{
+        return "decision";
+    }
+}
+function saveScriptContent(){
+    var pname = Request.QueryString("pname");
+    var cat = getDlgCategory();
+    $Post(SysConfig.Api.host+'/api/config/process/script/update_script_content',
+        {processName:pname,category:cat,scriptName:$("#decitionName").val(),remark:$("#decitionRemark").val(),
+            scriptContent:editorDecision.getValue(),testContent:$("#txbScriptText").val()},function(res){
+            if(res.success){
+                if(res.data != null){
+                    toastr.error(res.data);
+                    return;
+                }else{
+                    if(cat == "assignee") {
+                        $("#taskAssigneeScript").val($("#decitionName").val());
+                        $("#taskAssigneeScript").change();
+                    }else if(cat == "decision"){
+                        $("#decisionNodeScript").val($("#decitionName").val());
+                        $("#decisionNodeScript").change();
+                    }
+                    //保存修改的脚本
+                    $('#decisionDlg').modal('hide');
+                }
+            }
+        });
+}
+</script>
+    <!-- 模态框（决策脚本） -->
+    <div class="modal fade" id="decisionDlg">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="dlgTitle"></h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="hdeDlgCate"/>
+                    <div class="tab" role="tabpanel">
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active">
+                                <a href="#editDecitionCodeTab" role="tab" data-toggle="tab">编写代码</a>
+                            </li>
+                            <li role="presentation" class="">
+                                <a href="#refDecitionCodeTab" role="tab" data-toggle="tab" onclick="refTabClick()">参考代码</a>
+                            </li>
+                        </ul>
+                        <!-- Tab panes -->
+                        <div class="tab-content tabs">
+                            <div role="tabpanel" class="tab-pane fade active in" id="editDecitionCodeTab">
+                                <div class="row">
+                                <div class="form-group col-sm-4">
+                                    <select class="form-control" size="1" id="decitionName" onchange="handleScriptSelected(this)">
+                                    </select>
+                                </div>
+                                <div class="form-group col-sm-6">
+                                    <input type="text" id="decitionRemark" class="form-control" placeholder="中文描述"/>
+                                </div>
+                                <div class="form-group col-sm-2">
+                                    <button type="submit" class="btn btn-primary" onclick="onNewScriptNameClick()">新增</button>
+                                </div>
+                                </div>
+                                <div class="row">
+                                    <textarea id="decitionScriptCode" class="form-control"></textarea>
+                                </div>
+                                <div class="row alert alert-info" id="msgTest" style="margin-top:15px;"></div>
+                                <div class="row input-group2 date" style="margin-top:15px;">
+                                    <input id="txbScriptText" type="text" class="form-control" /><span class="input-group-addon" title="点击测试" onclick="runTest()"><i class="fa fa-bug"></i></span>
+                                </div>
+                            </div>
+                            <div role="tabpanel" class="tab-pane fade" id="refDecitionCodeTab">
+                                <table class="table table-hover table-expandable">
+                                    <thead><tr><th>流程名称</th><th>脚本名</th><th>描述</th></tr></thead>
+                                    <tbody>
+                                    <!--<tr><td>America</td><td>306,939,000</td><td>9,826,630 km2</td></tr>-->
+                                    <!--<tr><td colspan="4"><div class="row"><textarea id="ref1" class="form-control"></textarea></div></td></tr>-->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" id="dlgDecisionSaveOrUpdate" class="btn btn-primary" onclick="saveScriptContent()">保存</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="decisionScriptNameDlg">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">新增脚本</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="form-group col-sm-4">
+                            <input type="text" id="newScriptName" class="form-control" placeholder="唯一的英文文件名">
+                        </div>
+                        <div class="form-group col-sm-8">
+                            <input type="text" id="newScriptRemark" class="form-control" placeholder="中文描述"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" id="dlgDecisionNameSaveOrUpdate" onclick="dlgDecisionNameSaveClick()" class="btn btn-primary">保存</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+<style type="text/css">		.container{padding: 2em 0;}
+a:hover,a:focus{		    outline: none;		    text-decoration: none;		}
+.tab .nav-tabs{
+    position: relative;
+    /*border-bottom:none;*/
+}
+.tab .nav-tabs li{		    text-align: center;		    margin-right: 10px;		}
+.tab .nav-tabs li a{display: block;font-size: 16px;font-weight:600;color: #444;padding:10px 15px;
+    background: transparent;margin-right: 0;border: none;border-radius: 0;overflow: hidden;
+    position: relative;		    z-index: 1;		    transition: all 0.5s ease 0s;		}
+.tab .nav-tabs li a:before{
+    content: "";
+    width:100%;
+    /*height:3px;*/
+    background:#1ab394;
+    position:absolute;
+    /*top: 92%;*/
+    top:0;
+    left:0;
+    transition: all 0.3s ease 0s;
+}
+.tab .nav-tabs li a:hover:before, .tab .nav-tabs li.active a:before, .tab .nav-tabs li.active a:hover:before{
+    /*top:0;*/
+    top:92%;
+    height:3px;
+}
+.tab .nav-tabs li a:after{
+    content: "";		    width: 100%;
+    height: 100%;
+    background: #fff;		    position: absolute;
+    top: 100%;		    left: 0;		    z-index: -1;		    transition: all 0.3s ease 0s;		}
+.tab .nav-tabs li a:hover:after, .tab .nav-tabs li.active a:after, .tab .nav-tabs li.active a:hover:after{
+    /*top: 0;		*/
+}
+.nav-tabs li.active a,		.nav-tabs li.active a:focus,		.nav-tabs li.active a:hover,		.nav-tabs li a:hover{		    border: none;		}
+.tab .tab-content{		    padding: 30px 15px 20px;		    background: #fff;
+    font-size: 14px;		    color: #555;		    line-height: 26px;		}
+.tab .tab-content h3{		    font-size: 24px;		    margin-top: 0;		}
+@media only screen and (max-width: 479px){		    .tab .nav-tabs li{ width: 100%; }		}
+
+.row{ margin-left:0px;margin-right:0px;}
+
+/*滚动条样式*/
+::-webkit-scrollbar {
+    width: 6px;
+    height: 10px;
+}
+::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 5px rgb(0 0 0 / 20%);
+    border-radius: 5px;
+    background: #999;
+}
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px rgb(0 0 0 / 20%);
+    border-radius: 0;
+    background: #fff;
+}
+</style>
+<style>
+    table.table-expandable > tbody > tr:nth-child(odd) {
+        cursor: pointer;
+    }
+    table.table-expandable.table-hover > tbody > tr:nth-child(even):hover td {
+        background-color: white;
+    }
+    table.table-expandable > tbody > tr div.table-expandable-arrow {
+        background:transparent url(../images/arrows.png) no-repeat scroll 0px -16px; width:16px; height:16px; display:block;
+    }
+    table.table-expandable > tbody > tr div.table-expandable-arrow.up {
+        background-position:0px 0px;
+    }
+</style>
+<style>
+    .input-group2[class*=col-] {
+        float: none;
+        /*padding-right: 0;*/
+        /*padding-left: 0;*/
+    }
+    .input-group2 {
+        position: relative;
+        display: table;
+        border-collapse: separate;
+    }
+</style>
+    <link rel="stylesheet" href="../lib/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="../lib/codemirror/theme/monokai.css">
+    <script src="../lib/codemirror/lib/codemirror.js"></script>
+    <script src="../lib/codemirror/addon/hint/show-hint.js"></script>
+    <link rel="stylesheet" href="../lib/codemirror/addon/hint/show-hint.css?v=0.3">
+    <script src="../lib/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="../lib/codemirror/mode/vivid/vivid.js"></script>
+<script>
+    var editorDecision;
+
+    //initEditor(editorDecision,"decitionScriptCode");
+function initEditor(editor,txtId) {
+    editor = CodeMirror.fromTextArea(document.getElementById(txtId), {
+        theme: "monokai",//"night",
+        extraKeys: {"Alt-/": "autocomplete"},
+        lineNumbers: true,
+        matchBrackets: true,
+        autofocus: true,
+        //hintOptions:{completeSingle: false}
+        mode: "text/x-vivid"
+    });
+    //editor.setOption("readOnly", true);	alt+/
+
+    editor.on('keyup', function (cm, name, Event) {
+        //定义按哪些键时弹出提示框
+        if (isShow(name.keyCode)) {
+
+            var datas = {};
+            var cur = cm.getCursor();
+            var ch = cur.ch;
+            var line = cur.line;
+            var lineStr = cm.getLine(line);
+            //var fromS = lineStr.lastIndexOf("_");
+            var fromSD = lineStr.lastIndexOf(".");
+            var endS = lineStr.length;
+            //console.log("lineStr:",lineStr,"fromS:",fromS,"fromSD:",fromSD)
+            console.log("lineStr:", lineStr, "fromSD:", fromSD)
+            var token = cm.getTokenAt(cur);
+            console.log("tk:", token);
+            var obj = {};
+            var dont = {};
+            //自定义的API关键字
+            obj.DbOpen = ["DbOpen(connStr)"];
+            obj.HttpOpen = ["HttpOpen(method,url,header,param,timeout)"];
+            obj.println = ["println(obj)"];
+            obj.len = ["len(obj)"];
+            obj.type = ["type(obj)"];
+            obj.$dot = ["tostring()", "toint()", "split(separater)", "string()", "json()", "select(sql,params)"];
+
+            var packgeArrary = ["db", "cache", "log", "http", "security", "timer", "webTools", "webParams", "collectionTools", "mail", "vm"];
+
+            if (token.string.indexOf(".") == 0) {  //点完提示
+                var list = obj["$dot"];
+                if (token.string.length == 1) {
+
+                    datas.list = list;
+                    datas.from = {};
+                    datas.from.line = line;
+                    datas.from.ch = token.start + 1; //ch; 选中替换token开始位置
+                    datas.to = {};
+                    datas.to.line = line;
+                    datas.to.ch = ch;
+
+                    editor.showHint1({completeSingle: false}, datas);
+                    return;
+                } else {  //继续输入
+                    var functioStr = token.string.substring(1, token.string.length).toLowerCase();
+                    var showList = [];
+                    var showList2 = [];
+                    for (var a = 0; a < list.length; a++) {
+                        var info = list[a];
+                        if (info.toLowerCase().lastIndexOf(functioStr) > -1) {
+                            showList.push(info);
+                            showList2.push(a);
+                            console.log(info, a);
+                        }
+                    }
+                    datas.list = showList;
+                    datas.showList = showList2;
+                    datas.key = list[0];
+                    datas.from = {};
+                    datas.from.line = line;
+                    datas.from.ch = token.start + 1;
+                    datas.to = {};
+                    datas.to.line = line;
+                    datas.to.ch = ch;
+                    editor.showHint1({completeSingle: false}, datas);
+                    return;
+                }
+            }
+
+            if (token.string.length > 1) {
+                //处理分号 ;
+                var curToken = token.string;
+                var tokenStart = token.start;
+                if (token.string[0] == ";") {
+                    curToken = curToken.substr(1, curToken.length - 1);
+                    tokenStart = tokenStart + 1;
+                }
+
+                for (var k in obj) {
+                    console.log("k:", k, "cur:", curToken);
+                    if (k.indexOf(curToken) > -1) {
+                        lineStr = k;  //lineStr.substring(token.start,token.end);
+                        var list = obj[lineStr];
+
+                        datas.list = list;
+                        datas.from = {};
+                        datas.from.line = line;
+                        datas.from.ch = tokenStart; //ch; 选中替换token开始位置
+                        datas.to = {};
+                        datas.to.line = line;
+                        datas.to.ch = ch + 1;
+
+                        editor.showHint1({completeSingle: false}, datas);
+                        return;
+                    } else {
+                        editor.showHint();
+                    }
+                }
+            }
+        }
+    });
+    return editor;
+}
+function isShow(z) {
+    if(z == "8" ||z == "173"||z == "190"||z == "189" ||z == "110" ||z == "65" || z == "66" ||z == "67" ||z == "68" ||z == "69" ||z == "70" ||z == "71" ||z == "72" ||z == "73" ||z == "74" ||z == "75" ||z == "76" ||
+        z == "77" || z == "78" ||z == "79" ||z == "80" ||z == "81" ||z == "82" ||z == "83" ||z == "84" ||z == "85" ||z == "86" ||z == "87" ||z == "88" ||z == "89" ||z == "90" )
+    {
+        return true;
+    }else{
+        return false;
+    }
+}
+function refTabClick(){
+    var cate = $("#dlgTitle").text() == "决策脚本"?"decision":"assignee";
+    $Ajax(SysConfig.Api.host+"/api/config/process/script/category?category="+cate,function(res){
+        if(res.data){
+            $tbody = $("#refDecitionCodeTab").find("tbody");
+            for(var i=0;i<res.data.length;i++){
+                var row = '<tr name="row'+i+'"><td>'+res.data[i].processName+'</td><td>'+res.data[i].scriptName+'</td><td>'+res.data[i].remark+'</td></tr><tr><td colspan="4"><div class="row"><textarea id="row'+i+'" class="form-control">'+res.data[i].scriptContent+'</textarea></div></td></tr>';
+                $tbody.append($(row));
+            }
+            expandTable();
+        }
+    })
+
+}
+//折叠table
+function expandTable(){
+    $('.table-expandable').each(function () {
+        var table = $(this);
+        table.children('thead').children('tr').append('<th></th>');
+        table.children('tbody').children('tr').filter(':odd').hide();
+        table.children('tbody').children('tr').filter(':even').click(function () {
+            var element = $(this);
+            element.next('tr').toggle('slow');
+            if($("#"+element.attr("name")).attr('style')==undefined) {  //变editor 加入style="display: none;"
+                loadRefCode(element.attr("name"));
+            }
+            element.find(".fa").toggleClass("fa-chevron-up fa-chevron-down");
+        });
+        table.children('tbody').children('tr').filter(':even').each(function () {
+            var element = $(this);
+            element.append('<td><i class="fa fa-chevron-down"></i></td>');
+        });
+    });
+}
+function loadRefCode(id) {
+    var elem = document.getElementById(id);
+    var width = elem.clientWidth+"px";
+    // elem.value = val;
+    var ref = CodeMirror.fromTextArea(elem, {
+        theme: "monokai",//"night",
+        lineNumbers: true,
+        matchBrackets: true,
+        readOnly:true,
+        // autofocus: true,
+        //hintOptions:{completeSingle: false}
+        mode: "text/x-vivid"
+    });
+    ref.setSize(width,'auto');
+}
+    </script>
+</body>
+
+</html>
