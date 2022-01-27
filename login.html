@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集成登录</title>
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/font-awesome.css" rel="stylesheet">
+    <link href="static/css/animate.css" rel="stylesheet">
+    <link href="static/css/style.css" rel="stylesheet">
+    <style>
+        .login_container {
+            background-color: #2b4b6b;
+            height: 100%;
+        }
+        .login_box {
+            width: 450px;
+            height: 300px;
+            background-color: #fff;
+            border-radius: 3px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .login_logo {
+            width: 130px;
+            height: 130px;
+            border: 1px solid #eee;
+            border-radius: 50%;
+            padding: 10px;
+            box-shadow: 0 0 10px #ddd;
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* background-color: #fff; */
+        }
+        .login_logo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        .login_from {
+            position: absolute;
+            bottom: 0px;
+            width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        .login_btn {
+            display: flex;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body class="login_container">
+<div class="middle-box text-center lockscreen animated fadeInDown">
+    <div id="wrapper" style="min-height:450px;">
+    <div class="login_box">
+        <div class="login_logo">
+            <img src="static/img/logo.png">
+        </div>
+        <div class="login_from">
+            <div class="form-group">
+                <input id="username" type="text" class="form-control" placeholder="用户名" required="">
+            </div>
+            <div class="form-group">
+                <input id="password" type="password" class="form-control" placeholder="密码" required="">
+            </div>
+            <button id="loginBtn" type="submit" class="btn btn-primary block full-width m-b">登 录</button>
+
+        <p class="m-t">
+        </p>
+        </div>
+    </div>
+    </div>
+</div>
+<script language="JavaScript">
+    var vipspa = {};
+</script>
+<!-- Mainly scripts -->
+<script src="static/js/jquery-2.1.1.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+<script src="static/js/common.js"></script>
+<script src="lib/vipspa.js"></script>
+<script src="js/require.base.js"></script>
+<script src="js/login.js"></script>
+<script src="lib/base64.js"></script>
+</body>
+</html>
