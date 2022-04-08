@@ -464,3 +464,8 @@ input[type="radio"] .styled:checked + label::after {
 .has-tb-error{
     border-color: #ed5565;
 }
+/*cascader与style.css冲突*/
+.ibox .open > .dropdown-menu {
+    left: unset;
+    right: unset;
+}

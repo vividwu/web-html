@@ -122,6 +122,14 @@
 				<input name="{{d.columns[i].key}}"  value="{{d.row[d.columns[i].key]}}" type="text" class="table-field form-control" /><span class="input-group-addon"><i class="fa fa-calendar"></i></span>
 			</div>
 			{{# } }}
+			{{# if (d.columns[i].type=="Cascader") { }}
+			<div name="{{d.columns[i].key}}" class="table-field">
+				<div class="cascaderinput ccd">
+					点击选择
+				</div>
+				<input type="hidden" />
+			</div>
+			{{# } }}
 		</td>
 		{{# } }}
 		<td>
@@ -152,6 +160,8 @@
 <script src="lib/colorbox/jquery.colorbox.js"></script>
 <link href="lib/dropzone/dropzone2.css?v=0.1" rel="stylesheet" type="text/css"/>
 <link href="lib/colorbox/colorbox.css" rel="stylesheet" type="text/css"/>
+<script src="lib/bootstrap-cascader/bootstrap-cascader.js"></script>
+<link href="lib/bootstrap-cascader/bootstrap-cascader.min.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
 
 

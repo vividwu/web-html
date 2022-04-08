@@ -23,7 +23,7 @@ function getPageOrderNo() {
 function showHistory() {
     $("#historyDlg").modal('show');
     var orderNo = getPageOrderNo();
-
+    
     $Ajax(SysConfig.Api.host+"/api/approve/history/"+orderNo,function(res){
         var data = res.data;
         var tpl = document.getElementById('HistoryRow_Tpl').innerHTML; //读取模版

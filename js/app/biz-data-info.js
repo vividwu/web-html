@@ -1,7 +1,6 @@
-function TableInit() {
-    return $("#tbDictList").DataTable({
-        //ajax:  {url:"http://10.1.8.109:6600/csm-api/admin/account/total?page2dt=y",dataSrc:'data'},
-        sAjaxSource: SysConfig.Api.host+"/dict/allcode_by_cate?page2dt=y",
+function TableInit(tid,codes) {
+    return $("#tbDataList").DataTable({
+        sAjaxSource: SysConfig.Api.host+"/biz/data_info/page?page2dt=y&tid="+tid,
         fnServerData: function ( sUrl, aoData, fnCallback, oSettings ) {
             setSearchParams(aoData);
             $.ajax( {
@@ -13,47 +12,31 @@ function TableInit() {
                 success:  fnCallback
             });
         },
-        aoColumns: [
-            { mData: "code" },
-            { mData: "parentCode" },
-            { mData: "text" },
-            { mData: "sort" },
-            { mData: "category" },
-            { mData: "remark"},
-            { mData: null, defaultContent: ''},
-        ],
-        columnDefs: [//自定义处理行数据，和行样式
-            {"width": "10%", "targets": 0},
-            {"width": "10%", "targets": 1},
-            {"width": "50%", "targets": 2},
-            {"width": "5%", "targets": 3},
-            {"width": "5%", "targets": 4},
-            {"width": "10%", "targets": 5},
-            {"width": "10%", "targets": 6,
-                "render": function (data, type, row, meta) {
-                    var link = '<button class="add btn btn-primary btn-xs" onclick="btnEditDictClick(\''+data.code+"','"+(data.parentCode==null?"":data.parentCode)
-                        +"','"+data.text+"','"+(data.sort==null?"":data.sort)+"','"+data.category+"','"+(data.remark==null?"":data.remark)+"'"+')">编辑</button>&nbsp;&nbsp;';
-                    link += "<button class='add btn btn-danger btn-xs' onclick='btnDeleteDictClick()'>删除</button>";
-                    return link;
-                }
-            }
-        ]
+        aoColumns: codes
     });
 };
 function setSearchParams(params){
 }
 var dataTable;
+var fieldsInfo;
 $(document).ready(function(){
     //1.初始化Table
-    dataTable = TableInit();
-    $(".spin").TouchSpin({
-        initval: 1,
-        min: 1,
-        max: 100
+    //dataTable = TableInit();
+    var tid = Request.QueryString("tid");
+    $Ajax(SysConfig.Api.host+"/biz/data_info/fields?tid="+tid,function(res){
+        var codes = [];
+        var $tr = $("#tbDataList").find("thead tr");
+        fieldsInfo = res.data;
+        res.data.forEach(function (v){
+            $tr.append("<th>"+v.memo+"</th>");
+            codes.push({mData:v.fieldName});
+        })
+        console.log(codes)
+        dataTable = TableInit(tid,codes);
     });
     var elem = document.querySelector('.js-switch')
     isScriptElem = new Switchery(elem, { size: 'small' });
-    $("#isNewScript").change(function(e){
+    /*$("#isNewScript").change(function(e){
         if(isScriptElem.element.checked)
         {
             $("#newCategory").val("script_const");
@@ -62,21 +45,44 @@ $(document).ready(function(){
             $("#newCategory").val("");
             $("#newCategory").removeAttr("disabled");
         }
-    })
+    })*/
 });
-var isScriptElem;
-function btnNewDictClick(){
-    $('#newDictDlg').modal('show');
-    $('#newCategory').typeahead({
-        source: function (query, process) {
-            $Ajax(SysConfig.Api.host+"/api/common/dictionary/dict_cates?query=" + $("#newCategory").val(), function (res) {
-                process(res);
+function createFormControls() {
+    $("#newDataDlgForm")[0].innerHTML = "";
+    if(fieldsInfo === undefined) {
+        toaster.error("没有找到模型定义");
+        return;
+    }
+    fieldsInfo.forEach(function (v) {
+        var data = {key: v.tableName+"$"+v.fieldName, label: v.memo};
+        if (v.dataType == "cascader") {
+            drawControls('Cascader_Tpl',data,function () {
+                var control = new CascaderControl(data.key);
+                control.init(v.dataConfig);
+            });
+        } else if (v.dataType == "select") {
+
+        } else if (v.dataType == "depttree") {
+
+        } else {
+            drawControls('TextBox_Tpl',data,function () {
+                var control = new TextBoxControl(data.key);
+                control.label = v.memo;
             });
         }
-        // ,displayText:function (item) {  //或者默认.name
-        //     return item.category;
-        // }
     });
+}
+function drawControls(tempName,data,callback) {
+    var tpl = document.getElementById(tempName).innerHTML; //读取模版
+    laytpl(tpl).render(data, function (render) {
+        $("#newDataDlgForm").append(render);
+        callback();
+    });
+}
+var isScriptElem;
+function btnDataClick(){
+    $('#newDataDlg').modal('show');
+    createFormControls();
     //         $.ajax({
     //             type: "Get",
     //             url: "http://localhost:8880/api/common/dictionary/dict_cates?query="+$("#newCate").val(),
@@ -94,19 +100,20 @@ function btnNewDictClick(){
     //     }
     // });
 }
-function saveNewDict(){
-    $Post(SysConfig.Api.host+"/dict/create_code",{code:$("#newCode").val(),parentCode:$("#newParentCode").val(),text:$("#newText").val(),
-        sort:$("#newSort").val(),category:$("#newCategory").val(),remark:$("#newRemark").val()},function(res){
+function saveNewData(){
+    var kvs = $SubmitForm();
+    var tid = Request.QueryString("tid");
+    $Post(SysConfig.Api.host+"/biz/table_data/model/"+tid,kvs.formData,function(res){
         if(res.success){
             toastr.success('创建成功');
-            $('#newDictDlg').modal('hide');
+            $('#newDataDlg').modal('hide');
             dataTable.ajax.reload();
         }else{
             toastr.error(res.message);
         }
     })
 }
-function btnEditDictClick(code,parentCode,text,sort,category,remark){
+function btnEditTableClick(code,parentCode,text,sort,category,remark){
     $('#editDictDlg').modal('show');
     $('#editCode').val(code);
     $('#editParentCode').val(parentCode);
@@ -115,7 +122,7 @@ function btnEditDictClick(code,parentCode,text,sort,category,remark){
     $('#editCategory').val(category);
     $('#editRemark').val(remark);
 }
-function saveEditDict(){
+function saveEditTable(){
     $Post(SysConfig.Api.host+'/dict/update_code/'+$('#editCategory').val()+'/'+$('#editCode').val(),{code:$("#editCode").val(),
         parentCode:$("#editParentCode").val(),text:$("#editText").val(),sort:$("#editSort").val(),category:$("#editCategory").val(),
         remark:$("#editRemark").val()},function(res){

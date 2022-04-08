@@ -1,0 +1,89 @@
+﻿<div class="row wrapper border-bottom white-bg page-heading"> <div class="col-lg-10"> <h2>系统设置</h2> <ol class="breadcrumb"> <li> <a href="index.html">首页</a> </li> <li> <a>ou</a> </li> <li class="active"> <strong>岗位管理</strong> </li> </ol> </div> <div class="col-lg-2"> </div> </div>
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="ibox float-e-margins">
+					<div class="ibox-content form-inline">
+						<button id="btnNewPost" class="btn btn-success" type="submit" onclick="btnNewPostClick()">创 建</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="ibox float-e-margins">
+						<div class="ibox-content">
+							<!--table table-border table-bordered table-bg-->
+				<table id="tbPostList" class="table table-striped table-bordered table-hover  dataTable">
+					<thead>
+					<tr>
+						<th style="text-align:center;">ID</th>
+						<th style="text-align:center;">岗位编码</th>
+						<th style="text-align:center;">岗位名称</th>
+						<th style="text-align:center;">岗位标记</th>
+						<th style="text-align:center;">创建时间</th>
+						<th style="text-align:center;">操作</th>
+					</tr>
+					</thead>
+				</table>
+						</div>
+				</div>
+			</div>
+			</div>
+	</div>
+
+<div>
+<!-- 模态框（表单） -->
+<div class="modal right fade" id="newPostDlg">
+	<div class="modal-dialog" style="width:620px">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title">新增岗位</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row form-horizontal">
+					<div class="form-group">
+						<label class="col-sm-2 control-label">岗位编码</label>
+						<div class="col-sm-10"><input id="code" autocomplete="off" type="text" class="form-control"/></div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">岗位名称</label>
+						<div class="col-sm-10"><input id="name" autocomplete="off" type="text" class="form-control" /></div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">岗位标记</label>
+						<div class="col-sm-3"><select id="flag" class="form-control"><option value="">---请选择---</option><option value="leader">主管(leader)</option><option value="office">行政(office)</option><option value="finance">财务(finance)</option><option value="hrbp">HRBP(hrbp)</option></select></div>
+						<div class="col-sm-7"></div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-primary" onclick="saveNewPost()"> 创 建 </button>
+			</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+</div>
+
+<link href="lib/datatables/1.10.4/dataTables.bootstrap.css" rel="stylesheet">
+<script src="lib/datatables/1.10.4/jquery.dataTables.js"></script>
+<script src="lib/datatables/1.10.4/dataTables.bootstrap.js"></script>
+<!--要在最下面设置全局参数-->
+<script src="lib/datatables/1.10.4/dataTables.extend.js"></script>
+<script type="text/javascript">
+
+
+</script>
+<style>
+	.modal.left .modal-dialog,.modal.right .modal-dialog{position:fixed;margin:auto;height:100%;-webkit-transform:translate3d(0,0,0);-ms-transform:translate3d(0,0,0);-o-transform:translate3d(0,0,0);transform:translate3d(0,0,0)}
+	.modal.left .modal-content,.modal.right .modal-content{height:100%;overflow-y:auto}
+	.modal.left .modal-body,.modal.right .modal-body{padding:15px 15px 80px}
+	.modal.left.fade .modal-dialog{left:-320px;-webkit-transition:opacity .3s linear,left .3s ease-out;-moz-transition:opacity .3s linear,left .3s ease-out;-o-transition:opacity .3s linear,left .3s ease-out;transition:opacity .3s linear,left .3s ease-out}
+	.modal.left.fade.in .modal-dialog{left:0}
+	.modal.right.fade .modal-dialog{right:-320px;-webkit-transition:opacity .3s linear,right .3s ease-out;-moz-transition:opacity .3s linear,right .3s ease-out;-o-transition:opacity .3s linear,right .3s ease-out;transition:opacity .3s linear,right .3s ease-out}
+	.modal.right.fade.in .modal-dialog{right:0}
+	.modal-content{border-radius:0;border:none}
+	.modal-header{border-bottom-color:#eee;background-color:#fafafa}
+</style>

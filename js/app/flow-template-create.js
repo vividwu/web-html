@@ -67,7 +67,7 @@ function loadFormTab(pname){
         //ajax:  {url:"http://10.1.8.109:6600/csm-api/admin/account/total?page2dt=y",dataSrc:'data'},
         sAjaxSource: SysConfig.Api.host+"/api/config/process/form/table_list?pname="+pname,
         fnServerData: function ( sUrl, aoData, fnCallback, oSettings ) {
-
+            
             $.ajax( {
                 type: "GET",
                 url: sUrl,
@@ -104,7 +104,7 @@ function loadModelTab(pname){
         //ajax:  {url:"http://10.1.8.109:6600/csm-api/admin/account/total?page2dt=y",dataSrc:'data'},
         sAjaxSource: SysConfig.Api.host+"/api/config/process/model/table_list?pname="+pname,
         fnServerData: function ( sUrl, aoData, fnCallback, oSettings ) {
-
+            
             $.ajax( {
                 type: "GET",
                 url: sUrl,

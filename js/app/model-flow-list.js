@@ -3,10 +3,10 @@ function TableInit() {
         //ajax:  {url:"http://10.1.8.109:6600/csm-api/admin/account/total?page2dt=y",dataSrc:'data'},
         sAjaxSource: SysConfig.Api.host+"/api/config/process/list_page?page2dt=y",
         fnServerData: function ( sUrl, aoData, fnCallback, oSettings ) {
-
+            
             //aoData.push();
             setSearchParams(aoData);
-
+            
             $.ajax( {
                 type: "GET",
                 url: sUrl,
@@ -81,7 +81,7 @@ function saveData(dataTable){
             toastr.error(a);
         },
         "success": function (response) {
-
+            
             if (response != null && response != "") {
                 //刷新
                 if(response.success){
@@ -112,7 +112,7 @@ function tempAddSave(dataTable){
             toastr.error(a);
         },
         "success": function (response) {
-
+            
             if (response != null && response != "") {
                 //刷新
                 if(response.success){

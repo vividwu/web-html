@@ -34,7 +34,7 @@ function $ViewControls(config) {
                     var idx = i;
                     var tk = k;
                     $Ajax(CONF[k].columns[i].dataurl, function (res) {
-
+                        
                         CONF[tk].columns[idx].options = res;
                     });
                 }
@@ -50,6 +50,8 @@ function $ViewControls(config) {
             new UserDeptSelectControl(k).init(CONF[k].dataurl);
         } else if (CONF[k].type == "FileUpload") {
             new FileUploadControl(k).init(orderNoControl);
+        } else if (CONF[k].type == "Cascader") {
+            new CascaderControl(k).init(CONF[k].dataurl);
         }
     }
 }
@@ -62,7 +64,7 @@ function addTableRow(obj,key) {
         $("[name='"+key+"']").find("tbody").append($(render));
         var last = $("[name='"+key+"']").find("tbody").find("tr").last();
         //重新绑定控件事件
-        bindAllEvent(last);
+        bindAllEvent(last,table);
     });
 }
 function delTableRow(obj,key) {
@@ -79,7 +81,7 @@ function addTableRowBind(obj,key,rowData) {
         $("[name='"+key+"']").find("tbody").append($(render));
         var last = $("[name='"+key+"']").find("tbody").find("tr").last();
         //重新绑定控件事件
-        bindAllEvent(last);
+        bindAllEvent(last,table);
     });
 }
 //加载控件配置，并设置值
@@ -108,13 +110,14 @@ function $BindDate2Controls(CONF,DATA) {
             dc.bindData(dbVal);
         }else if(CONF[k].type == "Table"){  //表格内嵌套处理外部绑定数据
             for(var i=0;i<CONF[k].columns.length;i++){
-                if(CONF[k].columns[i].type == "Select"){
+                if(["Select","Cascader"].indexOf(CONF[k].columns[i].type)>=0) {
                     var tk = k;
                     var idx = i;
-                    $Ajax(CONF[k].columns[i].dataurl,function (res) {
+                    $Ajax(CONF[k].columns[i].dataurl, function (res) {
+                        
                         CONF[tk].columns[idx].options = res;
                         $$Controls.controls = CONF;
-                        bindTableRow(tk,DATA);
+                        bindTableRow(tk, DATA);
                     });
                 }
             }
@@ -138,6 +141,10 @@ function $BindDate2Controls(CONF,DATA) {
         } else if(CONF[k].type == "FileUpload"){
             new FileUploadControl(k).bindData(orderNo,true);
             //$(".dropzone").css("pointer-events","none");  //禁用
+        }else if(CONF[k].type == "Cascader") {
+            var cascader = new CascaderControl(k)
+            cascader.dataurl = CONF[k].dataurl;
+            cascader.bindData(dbVal);
         }
     }
 }

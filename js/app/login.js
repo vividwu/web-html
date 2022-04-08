@@ -3,7 +3,7 @@ $(document).ready(function(){
 });
 function onLogin(){
     var code = Request.QuerySearchString("code");  //vipspa.lash.indexOf("login")==0
-
+    
     if(code != "")  //返回?code=5hbYQX#login&state=pvg-user-menu
     {
         ;
@@ -31,7 +31,7 @@ function onLogin(){
         location.href = vipspa.Auth.config.loginUrl+vipspa.lash;
 
     //%23
-
+    
     console.log('您尚未登陆....')
     //alert('您尚未登陆....');
 }

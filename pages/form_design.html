@@ -28,6 +28,8 @@
     <style id="settingCss" type="text/css">
         .labelwidth{width:60px;}
     </style>
+    <script src="../js/page/form/control.js"></script>
+    <link rel="stylesheet" href="../js/page/form/control.css">
 </head>
 
 <body>
@@ -49,6 +51,7 @@
             <div type="Check"><i class="fa fa-link"></i> 超链接</div>
             <!--<div><i class="fa fa-cloud-download"></i> 其他</div>-->
             <h5 style="margin-left:5px;line-height:50px">高级控件</h5>
+            <div type="Cascader"><i class="fa fa-paperclip"></i>级联下拉</div>
             <div type="UserInfo"><i class="fa fa-user"></i>用户信息</div>
             <div type="OrderNo"><i class="fa fa-cc"></i>申请单号</div>
             <div type="DeptTree"><i class="fa fa-sitemap"></i>下拉部门</div>
@@ -239,6 +242,19 @@
                     </div>
                 </div>
             </script>
+            <!--级联下拉-->
+            <script id="Cascader_Tpl" type="text/html">
+                <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
+                    <label class="col-sm-4 control-label labelwidth">{{d.label}}</label>
+                    <div class="col-sm-8">
+                        <div class="cascaderinput ccd">
+                            点击选择
+                        </div>
+                        <input type="hidden" />
+                    </div>
+                    <button class="btn btn-danger btn-circle elem-delete"  onclick="delEle(this,'{{d.key}}')" type="button"><i class="fa fa-trash"></i></button>
+                </div>
+            </script>
             <!--人员选择器-->
             <script id="UserSelect_Tpl" type="text/html">
                 <div name="{{d.key}}" onclick="controlClick(this)" class="form-group col-sm-{{d.col}} citem">
@@ -386,16 +402,6 @@
             <div class="col-sm-8"><input property="{{d.key}}" onblur="propertyValueChange(this,'{{d.key}}','key')" type="text" class="form-control" value="{{d.key}}"/></div>
         </div>
 
-        <div class="form-group"><label class="col-sm-4 control-label">模型绑定</label>
-            <div class="col-sm-8">
-                <select class="form-control" size="1" name="selLevelType">
-                    <option value="" selected="">选择请假类型</option>
-                    <option value="year">年假</option>
-                    <option value="biz">事假</option>
-                </select>
-            </div>
-        </div>
-
         {{# if (d.getProperty().indexOf("label")>=0) { }}
         <div class="form-group"><label class="col-sm-4 control-label">标签名</label>
             <div class="col-sm-8"><input type="text" class="form-control" value="{{d.label}}" onblur="propertyValueChange(this,'{{d.key}}','label')"/></div>
@@ -516,6 +522,7 @@
                 <li><a href="#" onclick="propertyAddTableCol('TextBox','{{d.key}}')">文本框</a></li>
                 <li><a href="#" onclick="propertyAddTableCol('Select','{{d.key}}')">下拉框</a></li>
                 <li><a href="#" onclick="propertyAddTableCol('Date','{{d.key}}')">日期</a></li>
+                <li><a href="#" onclick="propertyAddTableCol('Cascader','{{d.key}}')">级联框</a></li>
                 <li class="divider"></li>
                 <li><a href="#">其他</a></li>
             </ul>
@@ -949,7 +956,11 @@
                 if(label.length>0) {
                     var tpl = document.getElementById('TextBox_Tpl').innerHTML; //读取模版
                     laytpl(tpl).render(data, function (render) {
+                        var isReq = label.hasClass("required");
                         label[0].outerHTML = render;
+                        if(isReq){
+                            $("[name='" + controlKey + "']").addClass("required");
+                        }
                         setCurrentControl(controlKey);
                     });
                 }else{
@@ -957,11 +968,15 @@
                     label = $("[tk='" + controlKey + "']");
                     label.text(data.label);
                 }
-            } else if(["Block","Select","UserInfo","OrderNo","DeptTree","UserSelect","Date","TextArea","Radio","Check","TBCellSum","UserDeptSelect","FileUpload"].indexOf(data.getType())>=0){
+            } else if(["Block","Select","UserInfo","OrderNo","DeptTree","UserSelect","Date","TextArea","Radio","Check","TBCellSum","UserDeptSelect","FileUpload","Cascader"].indexOf(data.getType())>=0){
                 var label = $("[name='" + controlKey + "']");
                 var tpl = document.getElementById(data.getType()+'_Tpl').innerHTML; //读取模版
                 laytpl(tpl).render(data, function (render) {
+                    var isReq = label.hasClass("required");
                     label[0].outerHTML = render;
+                    if(isReq){
+                        $("[name='" + controlKey + "']").addClass("required");
+                    }
                     setCurrentControl(controlKey);
                     if(data.draw){
                         data.draw();

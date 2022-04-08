@@ -90,9 +90,25 @@ $(function(){
                 templateUrl: 'views/org-dept-users.html',
                 controller: 'js/app/org-dept-users.js'
             },
+			'org-post-create': {
+                templateUrl: 'views/org-post-create.html',
+                controller: 'js/app/org-post-create.js'
+            },
 			'sys-dict-create': {
                 templateUrl: 'views/sys-dict-create.html',
                 controller: 'js/app/sys-dict-create.js'
+            },
+            'biz-table-create': {
+                templateUrl: 'views/biz-table-create.html',
+                controller: 'js/app/biz-table-create.js'
+            },
+            'biz-data-info': {
+                templateUrl: 'views/biz-data-info.html',
+                controller: 'js/app/biz-data-info.js'
+            },
+            'flow-hook-create': {
+                templateUrl: 'views/flow-hook-create.html',
+                controller: 'js/app/flow-hook-create.js'
             },
             'user': {
                 templateUrl: 'views/user.html',

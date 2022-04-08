@@ -36,7 +36,7 @@
         </div>
     </div>
         <!--overflow-y:auto-->
-<div style="margin-top: 20px;margin-right:20px;background: #fff;width:90%;min-height:240px;">
+<div style="margin-top: 20px;margin-right:20px;background: #fff;width:90%;min-height:160px;">
     <div class="row form-horizontal" id="editPanel">
     <div id="taskProperty" style="display:none">
         <div class="form-group">
@@ -49,7 +49,7 @@
         <label class="col-sm-1 control-label">候选人脚本</label>
         <div class="col-sm-2"><input type="text" onfocus="onAssigneeScriptFocus(this)" id="taskAssigneeScript" class="form-control" autocomplete="off"/></div>
         </div>
-        <div class="hr-line-dashed"></div>
+<!--        <div class="hr-line-dashed"></div>-->
         <div class="form-group">
             <label class="col-sm-1 control-label">绑定表单</label>
             <div class="col-sm-2"><select id="taskAction" class="form-control"></select></div>
@@ -58,6 +58,17 @@
             <label class="col-sm-1 control-label">自动通过</label>
             <div class="col-sm-2">
                 <input type="checkbox" id="taskAutoExecute" class="js-switch"/>
+            </div>
+            <label class="col-sm-1 control-label"></label>
+            <div class="col-sm-2"></div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-1 control-label">BeforeHook</label>
+            <div class="col-sm-2"><select id="taskBeforeHook" class="form-control"></select></div>
+            <label class="col-sm-1 control-label">AfterHook</label>
+            <div class="col-sm-2"><select id="taskAfterHook" class="form-control"></select></div>
+            <label class="col-sm-1 control-label"></label>
+            <div class="col-sm-2">
             </div>
             <label class="col-sm-1 control-label"></label>
             <div class="col-sm-2"></div>
@@ -112,6 +123,18 @@
             $("#taskAction").append("<option>--请选择--</option>");
             res.data.forEach(function(v,i) {
                 $("#taskAction").append("<option value='" + v.formCode + "'>" + v.formMemo +"("+v.formCode+")</option>");
+            });
+        });
+        //所有HOOK列表
+        $Ajax(SysConfig.Api.host+"/webserver/hooks/"+pname,function(res){
+            $("#taskBeforeHook").append("<option>--请选择--</option>");
+            $("#taskAfterHook").append("<option>--请选择--</option>");
+            res.data.forEach(function(v,i) {
+                if(v.category == "before") {
+                    $("#taskBeforeHook").append("<option value='" + v.hookCode + "'>" + v.remark + "(" + v.hookCode + ")</option>");
+                } else if(v.category == "after"){
+                    $("#taskAfterHook").append("<option value='" + v.hookCode + "'>" + v.remark + "(" + v.hookCode + ")</option>");
+                }
             });
         });
     });
@@ -345,7 +368,7 @@
                         { text: "+", figure: "Diamond", fill: "pink" },
                         { key:"decision", text: "x", figure: "Diamond", fill: "orange",type:"decision",conf:{expScript:'',displayName:''} },
                         { key:"end", text: "结束", figure: "Circle", fill: "#CE0620", type:"end" },
-                        { key:"task", text: "新步骤", figure: "RoundedRectangle", fill: "lightskyblue", type:"task",conf:{assignee:'',assigneeScript:'',performType:'any',autoExecute:false,action:'',remark:''} }
+                        { key:"task", text: "新步骤", figure: "RoundedRectangle", fill: "lightskyblue", type:"task",conf:{assignee:'',assigneeScript:'',performType:'any',autoExecute:false,action:'',remark:'',beforeHook:'',afterHook:''} }
                     ], [
                         // the Palette also has a disconnected Link, which the user can drag-and-drop
                         { points: new go.List(/*go.Point*/).addAll([new go.Point(0, 0), new go.Point(30, 0), new go.Point(30, 40), new go.Point(60, 40)]) }
@@ -369,7 +392,7 @@
             $("#taskNodeID").val(node.data.key);
             $("#taskNodeName").val(node.data.text);
             if(node.data.conf == undefined){
-                node.data.conf = {autoExecute:false,assignee:"",assigneeScript:"",action:"",performType:"any",remark:""};
+                node.data.conf = {autoExecute:false,assignee:"",assigneeScript:"",action:"",performType:"any",remark:"",beforeHook:"",afterHook:""};
             }
             $("#taskAssigneeScript").val(node.data.conf.assigneeScript);
             $("#taskAssigneeFlag").val(node.data.conf.assignee);
@@ -389,12 +412,26 @@
                     $(this).removeAttr("selected");
                 }
             });
-
+            //HOOK
+            $("#taskBeforeHook option").each(function(){
+                if($(this).val() == node.data.conf.beforeHook){
+                    $(this).prop("selected",true);
+                }else{
+                    $(this).removeAttr("selected");
+                }
+            });
+            $("#taskAfterHook option").each(function(){
+                if($(this).val() == node.data.conf.afterHook){
+                    $(this).prop("selected",true);
+                }else{
+                    $(this).removeAttr("selected");
+                }
+            });
             autoExecuteElem.element.checked = node.data.conf.autoExecute;
             autoExecuteElem.setPosition();
             $("#taskAutoExecute").unbind();
             $("#taskAutoExecute").bind('change',function(){
-                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:autoExecuteElem.element.checked,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:node.data.conf.performType});
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:autoExecuteElem.element.checked,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:node.data.conf.performType,beforeHook:node.data.conf.beforeHook,afterHook:node.data.conf.afterHook});
                 console.log("task autoexec:"+$(this).val());
             });
             autoExecuteElem.handleOnchange(true);
@@ -412,23 +449,34 @@
             });
             $("#taskAssigneeFlag").unbind();
             $("#taskAssigneeFlag").bind('input propertychange', function() {
-                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:$(this).val(),assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:node.data.conf.performType});
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:$(this).val(),assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:node.data.conf.performType,beforeHook:node.data.conf.beforeHook,afterHook:node.data.conf.afterHook});
                 console.log("assignee name:"+$(this).val());
             });
             $("#taskAssigneeScript").unbind();
             $("#taskAssigneeScript").bind('input change', function() {
-                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:$(this).val(),action:node.data.conf.action,performType:node.data.conf.performType});
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:$(this).val(),action:node.data.conf.action,performType:node.data.conf.performType,beforeHook:node.data.conf.beforeHook,afterHook:node.data.conf.afterHook});
                 console.log("assigneeScript name:"+$(this).val());
             });
             $("#taskAction").unbind();
             $("#taskAction").bind('change', function() {
-                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:$(this).val(),performType:node.data.conf.performType});
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:$(this).val(),performType:node.data.conf.performType,beforeHook:node.data.conf.beforeHook,afterHook:node.data.conf.afterHook});
                 console.log("action name:"+$(this).val());
             });
             $("#taskPerformType").unbind();
             $("#taskPerformType").bind('change', function() {
-                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:$(this).val()});
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:$(this).val(),beforeHook:node.data.conf.beforeHook,afterHook:node.data.conf.afterHook});
                 console.log("perform type:"+$(this).val());
+            });
+            //HOOK
+            $("#taskBeforeHook").unbind();
+            $("#taskBeforeHook").bind('change', function() {
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:node.data.conf.performType,beforeHook:$(this).val(),afterHook:node.data.conf.afterHook});
+                console.log("taskBeforeHook name:"+$(this).val());
+            });
+            $("#taskAfterHook").unbind();
+            $("#taskAfterHook").bind('change', function() {
+                updateNodeData2(node,node.data.key,$("#taskNodeName").val(),{autoExecute:node.data.conf.autoExecute,assignee:node.data.conf.assignee,assigneeScript:node.data.conf.assigneeScript,action:node.data.conf.action,performType:node.data.conf.performType,beforeHook:node.data.conf.beforeHook,afterHook:$(this).val()});
+                console.log("taskAfterHook name:"+$(this).val());
             });
         },
         createTransitionPanel:function (node) {
@@ -973,7 +1021,7 @@ function initEditor(editor,txtId) {
     editor.on('keyup', function (cm, name, Event) {
         //定义按哪些键时弹出提示框
         if (isShow(name.keyCode)) {
-
+            
             var datas = {};
             var cur = cm.getCursor();
             var ch = cur.ch;

@@ -103,13 +103,40 @@ function SelectControl(key) {
         $Ajax(durl,this.bindData)
     }
     this.bindData = function (res) {
-
+        
         var sel = $("[name='" + that.key + "']").find("select");
         res.forEach(function (v) {
             sel.append('<option ' + (that.value == v.value?"selected":"") + ' value="' + v.value + '">' + v.label + '</option>');
         });
     }
 };
+function CascaderControl(key){
+    this.type = "Cascader";
+    this.col = 12;
+    this.label = "级联下拉";
+    this.key = key?key:'Cascader'+new Date().getTime();
+    this.dataurl = "";
+    this.options = [];
+    this.value = "";
+    var that = this;
+    this.getType = function () {
+        return this.type;
+    }
+    this.getProperty = function () {
+        return ['col','key','label','dataurl']
+    }
+    this.init = function (url,domScope) {
+        
+        that.dataurl = url;
+        var id = that.value ? that.value : vipspa.Auth.getAuthUser().uid;
+        var controlNameObj = domScope == undefined ? $("[name='" + that.key + "']") : domScope.find("[name='" + that.key + "']");
+        bindCascaderData(that, controlNameObj, that.dataurl,that.options);
+    }
+    this.bindData = function (res,domScope) {
+        var controlNameObj = domScope == undefined ? $("[name='" + that.key + "']") : domScope.find("[name='" + that.key + "']");
+        bindCascaderData(that,controlNameObj,that.dataurl,that.options,res);
+    }
+}
 function UserDeptSelectControl(key){
     this.type = "UserDeptSelect";
     this.col = 12;
@@ -131,7 +158,7 @@ function UserDeptSelectControl(key){
         $Ajax(that.dataurl+"?uid="+id,this.bindData)
     }
     this.bindData = function (res) {
-
+        
         var sel = $("[name='" + that.key + "']").find("select");
         res.forEach(function (v) {
             sel.append('<option ' + (that.value == v.value?"selected":"") + ' value="' + v.value + '">' + v.label + '</option>');
@@ -157,7 +184,7 @@ function OrderNoControl(key) {
         $Ajax(durl,this.bindData)
     }
     this.bindData = function (res) {
-
+        
         var dom = $("[name='"+that.key+"']").find("input");
         dom.val(res);
         if(that.event == undefined){
@@ -415,7 +442,8 @@ function FileUploadControl(key) {
         // }
     }
 }
-function flat2tree(jsonData,idKey,pidKey,txtKey){
+function flat2tree(jsonData,idKey,pidKey,txtKey,newChildKey){
+    newChildKey = newChildKey == undefined?"nodes":newChildKey;
     var result = [], temp = {}, i = 0, j = 0, len = jsonData.length
     for(; i < len; i++){
         temp[jsonData[i][idKey]] = jsonData[i] // 以id作为索引存储元素，可以无需遍历直接定位元素
@@ -429,10 +457,10 @@ function flat2tree(jsonData,idKey,pidKey,txtKey){
         }
         var tempCurrentElementParent = temp[currentElement[pidKey]] // 临时变量里面的当前元素的父元素
         if (tempCurrentElementParent) { // 如果存在父元素
-            if (!tempCurrentElementParent['nodes']) { // 如果父元素没有chindren键
-                tempCurrentElementParent['nodes'] = [] // 设上父元素的children键
+            if (!tempCurrentElementParent[newChildKey]) { // 如果父元素没有chindren键
+                tempCurrentElementParent[newChildKey] = [] // 设上父元素的children键
             }
-            tempCurrentElementParent['nodes'].push(currentElement) // 给父元素加上当前元素作为子元素
+            tempCurrentElementParent[newChildKey].push(currentElement) // 给父元素加上当前元素作为子元素
         } else { // 不存在父元素，意味着当前元素是一级元素
             result.push(currentElement);
         }
@@ -555,7 +583,7 @@ function onUserSelect(obj) {
     $dialog.modal('hide');
 }
 //所有事件重新绑定
-function bindAllEvent(newRow) {
+function bindAllEvent(newRow,tableConfigData) {
     $('.input-group2.date').datepicker({
         language: "zh-CN",
         autoclose: true,//选中之后自动隐藏日期选择框
@@ -564,6 +592,23 @@ function bindAllEvent(newRow) {
         todayHightlight:true,
         format: "yyyy-mm-dd"
     });
+    //来自新行addTableRow/加载数据库addTableRowBind，区别：挂载row
+    if(tableConfigData.row == undefined){
+        tableConfigData.columns.forEach(function(x){
+            if(x.type == "Cascader"){
+                new CascaderControl(x.key).init(x.dataurl,newRow.find(".cascaderinput").parent().parent());  //td
+            }
+        });
+    } else {
+        var row = tableConfigData.row;
+        tableConfigData.columns.forEach(function(x){
+            if(x.type == "Cascader"){
+                var cas = new CascaderControl(x.key);
+                cas.options = x.options;
+                cas.bindData(row[x.key],newRow.find(".cascaderinput").parent().parent());  //td
+            }
+        });
+    }
     addEventTableCellSum(newRow);
 }
 function $SubmitForm() {
@@ -573,7 +618,7 @@ function $SubmitForm() {
     var data = {};
 	var valid = true;
     $("div [name*='$']").each(function(i,v) {
-
+        
         var $v = $(v);
         if ($v.hasClass("table-field")) {  //忽略表格内元素
             return;
@@ -621,7 +666,10 @@ function $SubmitForm() {
         var cons = $(v).find("[name*='$']");
         var rowData = {};
         cons.each(function(i2,v2) {
-            rowData[$(v2).attr("name")] = $(v2).val();
+            //input  优先找hidden值
+            var colVal = $(v2);
+            colVal = (colVal.find("[type=hidden]").length > 0) ? colVal.find("[type=hidden]") : colVal;
+            rowData[$(v2).attr("name")] = colVal.val();  //$(v2).val();
         });
         data[tbName].push(rowData);
     });
@@ -629,7 +677,7 @@ function $SubmitForm() {
     return {formValid:valid,formData:data};
 }
 function $BuildFlowData(formData){
-
+    
     console.log('create form save()',formData);
     //适配工作流引擎定义的结构
     let flowData = {store_keys:[],store_list_keys:[],args:{}};
@@ -638,8 +686,9 @@ function $BuildFlowData(formData){
         {continue;}
         //先排除不是列表
         if(key.indexOf('Table')>=0){
-            for(let i=0;i<formData[key].length;i++){  //循环多个表格
-                console.log(formData[key]);
+			flowData.args[key] = formData[key];  //处理表格字段给流程变量
+            for(let i=0;i<formData[key].length;i++){  //循环多个表格行
+                console.log("tb:",i,formData[key]);
                 let rowData = {model:'',store_keys:[]};
                 for(let tkey in formData[key][i]){ //表格内的行
                     console.log(formData[key][i]);
@@ -676,7 +725,7 @@ function $BuildFlowData(formData){
             flowData.args.wf_order_no = formData[key];
         }
         flowData.store_keys.push({model:arr[0],key:arr[1],val:formData[key]});
-        //处理表单流程变量(收集主表单，仅绑定的数据库字段)
+        //处理表单流程变量(收集主表单，仅绑定的数据库字段)x 220322加上表格字段
         flowData.args[key] = formData[key];
     }
     //构造表格外联接，默认都是order_no
@@ -744,12 +793,12 @@ function createUploadElem(uploadKey,bizId,isView){
         init: function () {
             var that = this;
             $Ajax(SysConfig.Api.host+"/file/open/form/file_list?bizId="+bizId,function(res){
-
+               
                 res.forEach(function (v) {
                     var mf = {id: v.fileId, name: v.fileName, size: v.fileSize};
                     that.files.push(mf);  //不加remove时files为0会被rest，显示上传提示
                     that.emit("addedfile", mf);
-
+                    
                     $(mf.previewElement).find(".dz-details").attr("href",SysConfig.Api.host+"/file/open/form/file?img="+v.fileId+v.fileType);
                     that.createThumbnailFromUrl(mf, SysConfig.Api.host+"/file/open/form/file?img=" + v.fileId + v.fileType, function (thumbnail) {
                         that.emit("complete", mf);
@@ -783,4 +832,65 @@ function createUploadElem(uploadKey,bizId,isView){
         }
     });
     return dropz;
+}
+function bindCascaderData(obj,controlNameObj,url,options,value) {
+    var cascader = controlNameObj.find(".cascaderinput");
+    cascader.text('');
+    cascader.removeClass('cascaderinput');
+    var rawDs;
+    cascader.bsCascader({
+        openOnHover: true,
+        splitChar: ' / '
+        ,loadData: function (openedItems, callback) {
+            var operationFn = function(response) {
+                console.log("cascader data", response);
+                var treeData = flat2tree(response,"code","parent","name","data");
+                console.log("tree data",treeData);
+                callback(treeData);
+                if(value != undefined){
+                    var selectedVal = getCascaderFullPath(response,value);
+                    console.log("tree path",selectedVal);
+                    setTimeout(function () {
+                        cascader.bsCascader('setValue',selectedVal);
+                    },100);
+                }
+            };
+            if(options.length==0) {
+                $Ajax(url, operationFn);
+            }else {
+                operationFn(options)
+            }
+        }
+    }).on({
+        'bs.cascader.change': function (e, oldValue, newValue) {
+            controlNameObj.find("[type=hidden]").val(newValue[newValue.length-1].code);  //(JSON.stringify(newValue));
+        }
+    });
+}
+function getCascaderFullPath(response,val) {
+    var path = [];
+    for(var i=0;i<response.length;i++){
+        if(response[i].code == val){
+            path.push(response[i]);
+            var parent = response[i]
+            while (parent != undefined){
+                parent = getCascaderParent(parent,response);
+                if(parent == undefined){
+                    break;
+                }
+                path.unshift(parent);
+            }
+        }
+    }
+    return path;
+}
+function getCascaderParent(val,response) {
+    var code;
+    for(var i=0;i<response.length;i++){
+        if(val.parent == response[i].code){
+            code = response[i];
+            break;
+        }
+    }
+    return code;
 }

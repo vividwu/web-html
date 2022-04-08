@@ -14,7 +14,7 @@ function onLogin() {
         type: "post",
         contentType: "application/x-www-form-urlencoded",
         success: function (data) {
-
+            
             if (data != null) {
                 console.log(data);
                 //window.localStorage.setItem("access_token", data.access_token);
@@ -28,7 +28,7 @@ function onLogin() {
             }
         },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-            alert(errorThrown)
+            alert(XMLHttpRequest.responseJSON.message)
         }
     });
     // }
@@ -36,7 +36,7 @@ function onLogin() {
     //     location.href = vipspa.Auth.config.loginUrl+vipspa.lash;
 
     //%23
-
+    
     console.log('您尚未登陆....')
     //alert('您尚未登陆....');
 }

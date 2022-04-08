@@ -1,7 +1,7 @@
 function TableInit() {
-    return $("#tbDictList").DataTable({
+    return $("#tbTableList").DataTable({
         //ajax:  {url:"http://10.1.8.109:6600/csm-api/admin/account/total?page2dt=y",dataSrc:'data'},
-        sAjaxSource: SysConfig.Api.host+"/dict/allcode_by_cate?page2dt=y",
+        sAjaxSource: SysConfig.Api.host+"/biz/table_info/page?page2dt=y",
         fnServerData: function ( sUrl, aoData, fnCallback, oSettings ) {
             setSearchParams(aoData);
             $.ajax( {
@@ -14,22 +14,21 @@ function TableInit() {
             });
         },
         aoColumns: [
-            { mData: "code" },
-            { mData: "parentCode" },
-            { mData: "text" },
-            { mData: "sort" },
-            { mData: "category" },
-            { mData: "remark"},
+            { mData: "id" },
+            { mData: "name" },
+            { mData: "memo" },
+            { mData: "createTime" },
             { mData: null, defaultContent: ''},
         ],
         columnDefs: [//自定义处理行数据，和行样式
-            {"width": "10%", "targets": 0},
-            {"width": "10%", "targets": 1},
-            {"width": "50%", "targets": 2},
-            {"width": "5%", "targets": 3},
-            {"width": "5%", "targets": 4},
-            {"width": "10%", "targets": 5},
-            {"width": "10%", "targets": 6,
+            {"width": "20%", "targets": 0},
+            {"width": "10%", "targets": 1,"render": function (data, type, row, meta) {
+                    var link = '<a href="#biz-data-info?tid='+row.id+'">'+row.name+'</a>';
+                    return link;
+                }},
+            {"width": "40%", "targets": 2},
+            {"width": "10%", "targets": 3},
+            {"width": "20%", "targets": 4,
                 "render": function (data, type, row, meta) {
                     var link = '<button class="add btn btn-primary btn-xs" onclick="btnEditDictClick(\''+data.code+"','"+(data.parentCode==null?"":data.parentCode)
                         +"','"+data.text+"','"+(data.sort==null?"":data.sort)+"','"+data.category+"','"+(data.remark==null?"":data.remark)+"'"+')">编辑</button>&nbsp;&nbsp;';
@@ -46,14 +45,9 @@ var dataTable;
 $(document).ready(function(){
     //1.初始化Table
     dataTable = TableInit();
-    $(".spin").TouchSpin({
-        initval: 1,
-        min: 1,
-        max: 100
-    });
     var elem = document.querySelector('.js-switch')
     isScriptElem = new Switchery(elem, { size: 'small' });
-    $("#isNewScript").change(function(e){
+    /*$("#isNewScript").change(function(e){
         if(isScriptElem.element.checked)
         {
             $("#newCategory").val("script_const");
@@ -62,21 +56,11 @@ $(document).ready(function(){
             $("#newCategory").val("");
             $("#newCategory").removeAttr("disabled");
         }
-    })
+    })*/
 });
 var isScriptElem;
-function btnNewDictClick(){
-    $('#newDictDlg').modal('show');
-    $('#newCategory').typeahead({
-        source: function (query, process) {
-            $Ajax(SysConfig.Api.host+"/api/common/dictionary/dict_cates?query=" + $("#newCategory").val(), function (res) {
-                process(res);
-            });
-        }
-        // ,displayText:function (item) {  //或者默认.name
-        //     return item.category;
-        // }
-    });
+function btnNewTableClick(){
+    $('#newTableDlg').modal('show');
     //         $.ajax({
     //             type: "Get",
     //             url: "http://localhost:8880/api/common/dictionary/dict_cates?query="+$("#newCate").val(),
@@ -94,7 +78,19 @@ function btnNewDictClick(){
     //     }
     // });
 }
-function saveNewDict(){
+function dataTypeChanged(obj) {
+    var $tr = $(obj).parent().parent();
+    if (["cascader","select","depttree"].indexOf(obj.value)>=0)
+        $tr.find("[name='dataConfig']").removeAttr("disabled");
+    else {
+        $tr.find("[name='dataConfig']").attr("disabled", "disabled");
+        $tr.find("[name='dataConfig']").val("");
+    }
+}
+function allowNullCheck(obj) {
+
+}
+function saveTableDict(){
     $Post(SysConfig.Api.host+"/dict/create_code",{code:$("#newCode").val(),parentCode:$("#newParentCode").val(),text:$("#newText").val(),
         sort:$("#newSort").val(),category:$("#newCategory").val(),remark:$("#newRemark").val()},function(res){
         if(res.success){
@@ -106,7 +102,7 @@ function saveNewDict(){
         }
     })
 }
-function btnEditDictClick(code,parentCode,text,sort,category,remark){
+function btnEditTableClick(code,parentCode,text,sort,category,remark){
     $('#editDictDlg').modal('show');
     $('#editCode').val(code);
     $('#editParentCode').val(parentCode);
@@ -115,7 +111,7 @@ function btnEditDictClick(code,parentCode,text,sort,category,remark){
     $('#editCategory').val(category);
     $('#editRemark').val(remark);
 }
-function saveEditDict(){
+function saveEditTable(){
     $Post(SysConfig.Api.host+'/dict/update_code/'+$('#editCategory').val()+'/'+$('#editCode').val(),{code:$("#editCode").val(),
         parentCode:$("#editParentCode").val(),text:$("#editText").val(),sort:$("#editSort").val(),category:$("#editCategory").val(),
         remark:$("#editRemark").val()},function(res){
@@ -128,6 +124,44 @@ function saveEditDict(){
         }
     })
 }
+function addData(){
+    var tpl = document.getElementById('ModleRow_Tpl').innerHTML; //读取模版
+    var data = [{"fieldName":"","memo":"","dataType":"nvarchar","allowNull":true,"dataConfig":""}]
+    laytpl(tpl).render(data, function(render) {
+        $("#tableData").find("tbody").append($(render));
+    });
+}
+function deleteData(obj,idx){
+    $(obj).parent().parent().remove();
+}
 function btnDeleteDictClick(){
     toastr.error("待实现");
+}
+//新增字段编辑框
+function createNewModel() {
+    var model = [];
+    $("#tableData tbody tr").each(function () {
+        model.push({
+            "fieldName": $(this).find("[name='fieldName']").val(), "memo": $(this).find("[name='memo']").val(),"dataType": $(this).find("[name='dataType']").val(),
+            "dataConfig": $(this).find("[name='dataConfig']").val(), "tableName": $("#tableName").val(),"required":$(this).find("[name='allowNull']").is(':checked')?"y":"n"
+        });
+    });
+    $Post(SysConfig.Api.host+"/biz/table_info/model/create",
+        {
+            info: {name: $("#tableName").val(), memo: $("#tableMemo").val()},
+            fields: model
+        }, function (res) {
+            if (res.success) {
+                // var row = '<tr role="row" class="even"><td>' + $("#tableName").val() + '</td><td>' + $("#tableMemo").val() + '</td><td></td><td><button class="add btn btn-primary btn-xs" onclick="deleteTableLink(\''+$("#tableName").val()+'\')">删除</button></td></tr>';
+                // $("#modelTable tbody").append($(row));
+                toastr.success("创建成功");
+                $("#newTableDlg").modal('hide');
+                $("#tableData").find("tbody").html("");  //清空原有的
+                $("#tableName").val("");
+                $("#tableMemo").val("");
+                dataTable.ajax.reload();
+            } else {
+                toastr.error(res.message);
+            }
+        });
 }

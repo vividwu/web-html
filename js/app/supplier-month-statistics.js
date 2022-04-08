@@ -5,10 +5,10 @@ function TableInit() {
         //ajax:  {url:"http://10.1.8.109:6600/csm-api/admin/account/total?page2dt=y",dataSrc:'data'},
         sAjaxSource: SysConfig.Api.host+"/supplier/statistics/month",
         fnServerData: function ( sUrl, aoData, fnCallback, oSettings ) {
-
+            
             //aoData.push();
             setSearchParams(aoData);
-
+            
             $.ajax( {
                 type: "GET",
                 url: sUrl,
@@ -66,5 +66,5 @@ function setSearchParams(params) {
         {"name": "begin", "value": begin},
         {"name": "end", "value": end}
     );
-
+    
 }

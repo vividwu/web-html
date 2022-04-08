@@ -1,0 +1,176 @@
+﻿<div class="row wrapper border-bottom white-bg page-heading"> <div class="col-lg-10"> <h2>业务对象</h2> <ol class="breadcrumb"> <li> <a href="index.html">首页</a> </li> <li> <a>业务对象</a> </li> <li class="active"> <strong>对象数据</strong> </li> </ol> </div> <div class="col-lg-2"> </div> </div>
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="ibox float-e-margins">
+					<div class="ibox-content form-inline">
+						<button id="btnNewData" class="btn btn-success" type="submit" onclick="btnDataClick()">创 建</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="ibox float-e-margins">
+						<div class="ibox-content">
+							<!--table table-border table-bordered table-bg-->
+				<table id="tbDataList" class="table table-striped table-bordered table-hover  dataTable">
+					<thead>
+					<tr>
+					</tr>
+					</thead>
+				</table>
+						</div>
+				</div>
+			</div>
+			</div>
+	</div>
+
+<div>
+<!-- 模态框（表单） -->
+<div class="modal right fade" id="newDataDlg">
+	<div class="modal-dialog" style="width:620px">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title">新增对象</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row form-horizontal" id="newDataDlgForm">
+					<div class="form-group">
+						<label class="col-sm-2 control-label">编码</label>
+						<div class="col-sm-10"><input id="newCode" type="text" class="form-control"/></div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">父编码</label>
+						<div class="col-sm-10"><input id="newParentCode" type="text" class="form-control" /></div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">内容</label>
+						<div class="col-sm-10"><textarea rows="3" id="newText" class="form-control" /></div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">排序</label>
+						<div class="col-sm-3"><input id="newSort" type="text" class="form-control spin"/></div>
+						<div class="col-sm-7"></div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">分类</label>
+						<div class="col-sm-10">
+							<label class="col-sm-3 control-label" style="padding-left:32px;padding-top:6px">是否脚本</label>
+							<div class="col-sm-2"><input type="checkbox" id="isNewScript"  class="js-switch" /></div>
+							<div  class="col-sm-6"><input id="newCategory" data-provider="typeahead" type="text" dataitem="12" class="form-control" placeholder="请输入" autocomplete="off" /></div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">描述</label>
+						<div class="col-sm-10"><input id="newRemark" type="text" class="form-control" /></div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-primary" onclick="saveNewData()"> 创 建 </button>
+			</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+</div>
+
+<div>
+	<!-- 模态框（表单） -->
+	<div class="modal right fade" id="editDataDlg">
+		<div class="modal-dialog" style="width:620px">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title">新增数据</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row form">
+						<div class="form-group">
+							<label class="col-sm-2 control-label">编码</label>
+							<div class="col-sm-10"><input id="editCode" type="text" class="form-control" disabled/></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">父编码</label>
+							<div class="col-sm-10"><input id="editParentCode" type="text" class="form-control" disabled/></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">内容</label>
+							<div class="col-sm-10"><textarea rows="3" id="editText" class="form-control" /></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">排序</label>
+							<div class="col-sm-3"><input id="editSort" type="text" class="form-control spin"/></div>
+							<div class="col-sm-7"></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">分类</label>
+							<div class="col-sm-10">
+								<input id="editCategory" type="text" class="form-control" disabled/></div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">描述</label>
+							<div class="col-sm-10"><input id="editRemark" type="text" class="form-control" /></div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-primary" onclick="saveEditDict()"> 修 改 </button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+</div>
+
+<script id="TextBox_Tpl" type="text/html">
+	<div name="{{d.key}}" class="form-group">
+		<label class="col-sm-2 control-label">{{d.label}}</label>
+		<div class="col-sm-10"><input type="text" class="form-control"/></div>
+	</div>
+</script>
+<!--级联下拉-->
+<script id="Cascader_Tpl" type="text/html">
+	<div name="{{d.key}}" class="form-group">
+		<label class="col-sm-2 control-label">{{d.label}}</label>
+		<div class="col-sm-10">
+			<div class="cascaderinput ccd">
+				点击选择
+			</div>
+			<input type="hidden" />
+		</div>
+	</div>
+</script>
+
+<link href="lib/datatables/1.10.4/dataTables.bootstrap.css" rel="stylesheet">
+<script src="lib/datatables/1.10.4/jquery.dataTables.js"></script>
+<script src="lib/datatables/1.10.4/dataTables.bootstrap.js"></script>
+<!--要在最下面设置全局参数-->
+<script src="lib/datatables/1.10.4/dataTables.extend.js"></script>
+<script src="lib/touchspin/jquery.bootstrap-touchspin.js"></script>
+<link href="lib/touchspin/jquery.bootstrap-touchspin.css" rel="stylesheet">
+<script src="lib/typeahead/bootstrap3-typeahead.min.js"></script>
+<script src="lib/switchery/switchery.js"></script>
+<link href="lib/switchery/switchery.css" rel="stylesheet">
+<link href="lib/switchery/switchery.css" rel="stylesheet">
+<link href="js/page/form/control.css" rel="stylesheet">
+<script src="js/page/form/control.js"></script>
+<script src="lib/laytpl.js"></script>
+<script src="lib/bootstrap-cascader/bootstrap-cascader.js"></script>
+<link href="lib/bootstrap-cascader/bootstrap-cascader.min.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript">
+
+
+</script>
+<style>
+	.modal.left .modal-dialog,.modal.right .modal-dialog{position:fixed;margin:auto;height:100%;-webkit-transform:translate3d(0,0,0);-ms-transform:translate3d(0,0,0);-o-transform:translate3d(0,0,0);transform:translate3d(0,0,0)}
+	.modal.left .modal-content,.modal.right .modal-content{height:100%;overflow-y:auto}
+	.modal.left .modal-body,.modal.right .modal-body{padding:15px 15px 80px}
+	.modal.left.fade .modal-dialog{left:-320px;-webkit-transition:opacity .3s linear,left .3s ease-out;-moz-transition:opacity .3s linear,left .3s ease-out;-o-transition:opacity .3s linear,left .3s ease-out;transition:opacity .3s linear,left .3s ease-out}
+	.modal.left.fade.in .modal-dialog{left:0}
+	.modal.right.fade .modal-dialog{right:-320px;-webkit-transition:opacity .3s linear,right .3s ease-out;-moz-transition:opacity .3s linear,right .3s ease-out;-o-transition:opacity .3s linear,right .3s ease-out;transition:opacity .3s linear,right .3s ease-out}
+	.modal.right.fade.in .modal-dialog{right:0}
+	.modal-content{border-radius:0;border:none}
+	.modal-header{border-bottom-color:#eee;background-color:#fafafa}
+</style>

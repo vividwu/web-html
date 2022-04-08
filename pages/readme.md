@@ -22,6 +22,8 @@
 
 3、all.sql
 
+4、wfhtml.rar
+
 2、解压
 
 flow.rar包含内容：
@@ -58,9 +60,11 @@ sql.rar包含内容：
 
 * engine解压后config目录下的settings数据库连接为刚创建的数据库，执行webapp.exe运行流程引擎
 
-* engine解压后application-prod.properties中修改数据库连接为刚创建的数据库，执行：
+* flow解压后application-prod.properties中修改数据库连接为刚创建的数据库，执行：
 
   java -jar -Dspring.config.location=application-prod.properties flow_prod.jar
+  
+* wfhtml解压后，使用nginx等静态文件服务配置目录，发布前端
 
 ### <a id="use_default">直接使用</a>
 
@@ -367,6 +371,7 @@ type(function); #返回 FUNCTION
 > 候选人脚本固定为TaskCall(ctx)函数，ctx为本次上下文+表单内参数
 
 ```
+ctx数据：
 {
 "creator":创建人ID,"operator":操作人ID,"name":任务节点Key,"parent_operator":上一任务节点操作人ID,"parent_name":上一任务节点Key,
 
@@ -374,9 +379,10 @@ type(function); #返回 FUNCTION
 
 }
 ```
+UC_DB_CONN_SELF为数据库连接
 
 ```
-获取直接上级，UC_DB_CONN_SELF为数据库连接
+【获取直接上级】
 
 let TaskCall=fn(ctx){
     let dept=ctx["args"]["fm_fybx_info$dept_code"]
@@ -390,6 +396,31 @@ let TaskCall=fn(ctx){
             return rows[0]["user_id"].tostring();
         }else{
         	return rows[0]["user_id"].tostring();
+        }
+    }
+}
+```
+
+```
+【申请人上上级负责人】
+
+let TaskCall=fn(ctx){
+    let dept=ctx["args"]["fm_annual2_info$dept_code"]
+    let db=DbOpen(UC_DB_CONN_SELF);
+    let leaderRows=db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='leader' and dept_id=?",dept);
+    if(type(leaderRows)=="ERROR"){
+        return "";
+    }else{
+        let fullPath=db.select("select full_path_id from ou_dept_info where id=?",dept);
+		let arr = fullPath[0]["full_path_id"].split("/");  #提交人部门全路径
+    	if(ctx["creator"] == leaderRows[0]["user_id"].tostring()){  #提交人是本部门负责人，往前找2级
+	    let path = arr[len(arr)-3];
+	    let newLeader = db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='leader' and dept_id=?",path);
+	    return newLeader[0]["user_id"].tostring();
+        }else{
+	    let path = arr[len(arr)-2];
+	    let newLeader = db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='leader' and dept_id=?",path);
+        return newLeader[0]["user_id"].tostring();
         }
     }
 }

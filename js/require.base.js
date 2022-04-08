@@ -1,7 +1,7 @@
 $(function(){
     vipspa.Auth({
         config:{ logoutUrl:"http://10.1.9.16:10380/logout?out=http://localhost:8255/wfhtml/login.html",
-            loginUrl:"http://localhost:8880/oauth/token?grant_type=password&",
+            loginUrl:"http://101.43.138.169:8880/oauth/token?grant_type=password&",
             authTokeUrl:"http://10.1.9.16:6600/oauth/token?client_id=ConsumeWebProd&client_secret=12345&grant_type=authorization_code&redirect_uri=http://10.1.9.14:8251/%23login&code=" },
         isLogin: function(){
             var act = window.sessionStorage.getItem("user_info");
