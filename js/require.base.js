@@ -67,6 +67,6 @@ var Request = {
 }
 
 var SysConfig = {
-    Api:{ host:"http://localhost:8880" }
+    Api:{ host:"http://101.43.138.169:8880" }
 }
 toastr.options = {"timeOut": "2000", "closeButton": true, "positionClass": "toast-top-center"}

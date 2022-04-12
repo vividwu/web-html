@@ -9,32 +9,46 @@
 <div id="index">
 <h5 style="padding-left:10px">Ä¿Â¼</h5>
 <ul class="toc-ul">
-<li><a href="#">ï¿½ï¿½ï¿½</a></li>
-<li><a href="#">ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½</a></li>
-<li><a href="#use_default">Ö±ï¿½ï¿½Ê¹ï¿½ï¿½</a></li>
-<li><a href="#interface_integration">ï¿½Ó¿Ú¼ï¿½ï¿½ï¿½</a></li>
-<li><a href="#">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</a></li>
+<li><a href="#">¼ò½é</a></li>
+<li><a href="#">°²×°²¿Êð</a></li>
+<li><a href="#use_default">Ö±½ÓÊ¹ÓÃ</a></li>
+<li><a href="#interface_integration">½Ó¿Ú¼¯³É</a></li>
+<li><a href="#">Á÷³ÌÒýÇæ</a></li>
 <li>
 <ul>
-<li><a href="#create_process">ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½</a></li>
-<li><a href="#create_model">Ä£ï¿½Í¶ï¿½ï¿½ï¿½</a></li>
-<li><a href="#create_form">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</a></li>
-<li><a href="#create_flow">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</a></li>
+<li><a href="#create_process">Á÷³Ì¶¨Òå</a></li>
+<li><a href="#create_model">Ä£ÐÍ¶¨Òå</a></li>
+<li><a href="#create_form">±íµ¥Éè¼Æ</a></li>
+<li><a href="#create_flow">Á÷³ÌÉè¼Æ</a></li>
 </ul></li>
-<li><a href="#script">ï¿½ï¿½Ì¬ï¿½Å±ï¿½</a></li>
+<li><a href="#script">¶¯Ì¬½Å±¾</a></li>
 <li>
 <ul>
-<li><a href="#script_desc">ï¿½Å±ï¿½ï¿½ï¿½ï¿½</a></li>
-<li><a href="#lexer">ï¿½Å±ï¿½ï¿½ï·¨</a></li>
-<li><a href="#object">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</a></li>
-<li><a href="#buildin">ï¿½ï¿½ï¿½Ãºï¿½ï¿½ï¿½</a></li>
+<li><a href="#script_desc">½Å±¾¼ò½é</a></li>
+<li><a href="#lexer">½Å±¾Óï·¨</a></li>
+<li><a href="#object">Êý¾ÝÀàÐÍ</a></li>
+<li><a href="#buildin">ÄÚÖÃº¯Êý</a></li>
 </ul></li>
-<li><a href="#">ï¿½ï¿½Ì¬ï¿½Ó¿ï¿½</a></li>
-<li><a href="#">ï¿½Å±ï¿½ï¿½Î¿ï¿½</a></li>
+<li><a href="#">¶¯Ì¬½Ó¿Ú</a></li>
+<li><a href="#">½Å±¾²Î¿¼</a></li>
 <li>
 <ul>
-<li><a href="#">ï¿½ï¿½ï¿½Øºï¿½Ñ¡ï¿½ï¿½</a></li>
-<li><a href="#">ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½</a></li>
+<li><a href="#">·µ»ØºòÑ¡ÈË</a></li>
+<li><a href="#">·µ»ØÂ·ÓÉ</a></li>
+</ul></li>
+</li>
+<li><a href="#control_api">¿Ø¼þAPI</a></li>
+<li>
+<ul>
+<li><a href="#control_order">ÉêÇëµ¥ºÅ</a></li>
+<li><a href="#control_userinfo">ÓÃ»§ÐÅÏ¢</a></li>
+<li><a href="#control_dept">ÓÃ»§²¿ÃÅ</a></li>
+</ul></li>
+<li><a href="#">Ê¹ÓÃÊ¾Àý</a></li>
+<li>
+<ul>
+<li><a href="#">´®ÐÐÁ÷³Ì</a></li>
+<li><a href="#">·ÖÖ§Á÷³Ì</a></li>
 </ul></li>
 </li>
 </ul>
@@ -50,16 +64,16 @@ $(document).ready(function(){
 			type : "GET",
 			dataType : "html",
 			cache : false,
-			success : function(res) {
+			success : function(res) {debugger
 				document.getElementById('md').innerHTML = marked.parse(res);
 			}
 		});
 });
 var raw = '# Marked in the browser\n\nRendered by **marked**.\n\n```\n\nfunction a(){}\n\n```'+
 '\n\n\n\naaa\n\naaa\n\naaa\n\naaa\n\naaa\n\naaa\n\naaa\n'+
-    '|  ï¿½ï¿½Í·   | ï¿½ï¿½Í·  |\n' +
+    '|  ±íÍ·   | ±íÍ·  |\n' +
 	'|  ----  | ----  |\n' +
-	'| ï¿½ï¿½Ôªï¿½ï¿½  | ï¿½ï¿½Ôªï¿½ï¿½ |';
+	'| µ¥Ôª¸ñ  | µ¥Ôª¸ñ |';
 ;
 //document.getElementById('md').innerHTML = marked.parse(raw);
   </script>
