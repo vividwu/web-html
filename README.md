@@ -4,7 +4,7 @@
 
 <a href="http://101.43.138.169/wfhtml/" target="_blank">演示DEMO地址</a>
 
-<font color=#f06431>测试账号wuwei2_m，密码123，测试默认用户密码都是123。</font>
+<font color=#f06431>测试账号testemp1，密码123，测试默认用户密码都是123。</font>
 
 ### 安装部署
 项目由两部分组成：
@@ -21,6 +21,8 @@
 2、engine.rar
 
 3、all.sql
+
+4、wfhtml.rar
 
 2、解压
 
@@ -58,9 +60,11 @@ sql.rar包含内容：
 
 * engine解压后config目录下的settings数据库连接为刚创建的数据库，执行webapp.exe运行流程引擎
 
-* engine解压后application-prod.properties中修改数据库连接为刚创建的数据库，执行：
+* flow解压后application-prod.properties中修改数据库连接为刚创建的数据库，执行：
 
   java -jar -Dspring.config.location=application-prod.properties flow_prod.jar
+  
+* wfhtml解压后，使用nginx等静态文件服务配置目录，发布前端
 
 ### <a id="use_default">直接使用</a>
 
@@ -114,7 +118,7 @@ days和category将在脚本中能获取到，脚本使用参见下面<a href="#s
 
 **表单设计器可以绑定模型，布局控件排版**
 
-![表单](/pages/imgs/form.png)
+<a href="/pages/imgs/form.png" target="_blank" title="查看大图">![表单](/pages/imgs/form.png)</a>
 
 *点击左侧控件，中间设计面板可以调整布局（为了保证表单样式统一，布局前先放入卡片控件，除了表格其他子控件放入其中）
 
@@ -122,11 +126,11 @@ days和category将在脚本中能获取到，脚本使用参见下面<a href="#s
 
 *设计完成点击“保存”
 
-![控件](/pages/imgs/controls.png)
+<a href="/pages/imgs/controls.png" target="_blank" title="查看大图">![控件](/pages/imgs/controls.png)</a>
 
 *默认自带基础控件，按照开发规则可拓展自定义控件
 
-![属性](/pages/imgs/properties.png)
+<a href="/pages/imgs/properties.png" target="_blank" title="查看大图">![属性](/pages/imgs/properties.png)</a>
 
 *属性面板配置控件绑定模型、数据源、栅格等
 
@@ -134,31 +138,31 @@ days和category将在脚本中能获取到，脚本使用参见下面<a href="#s
 
 **流程设计器可以灵活配置流转和节点审批人**
 
-![流程图](/pages/imgs/flow_design.png)
+<a href="/pages/imgs/flow_design.png" target="_blank" title="查看大图">![流程图](/pages/imgs/flow_design.png)</a>
 
 *拖入开始、结束节点，设置提交节点；配置任务和路由节点属性和脚本；*
 
 - **设置节点连线文字:** 
 
-![节点连线](/pages/imgs/transition.png)
+<a href="/pages/imgs/transition.png" target="_blank" title="查看大图">![节点连线](/pages/imgs/transition.png)</a>
 
 - **设置任务节点:** 
 
-![任务节点](/pages/imgs/task.png)
+<a href="/pages/imgs/task.png" target="_blank" title="查看大图">![任务节点](/pages/imgs/task.png)</a>
 
 *可设置关联的表单、返回候选人的脚本、审批的类型*
 
 - **编写任务节点候选人脚本:** 
 
-![任务节点候选人脚本](/pages/imgs/task_script.png)
+<a href="/pages/imgs/task_script.png" target="_blank" title="查看大图">![任务节点候选人脚本](/pages/imgs/task_script.png)</a>
 
 - **设置路由节点:** 
 
-![路由节点](/pages/imgs/decision.png)
+<a href="/pages/imgs/decision.png" target="_blank" title="查看大图">![路由节点](/pages/imgs/decision.png)</a>
 
 *可设置路由跳转的脚本返回任务节点 - 指定的taskId*
 
-![路由节点候选人脚本](/pages/imgs/decision_script.png)
+<a href="/pages/imgs/decision_script.png" target="_blank" title="查看大图">![路由节点候选人脚本](/pages/imgs/decision_script.png)</a>
 
 ### <a id="script">动态脚本</a>
 #### <a id="script_desc">脚本简介</a>
@@ -367,6 +371,7 @@ type(function); #返回 FUNCTION
 > 候选人脚本固定为TaskCall(ctx)函数，ctx为本次上下文+表单内参数
 
 ```
+ctx数据：
 {
 "creator":创建人ID,"operator":操作人ID,"name":任务节点Key,"parent_operator":上一任务节点操作人ID,"parent_name":上一任务节点Key,
 
@@ -374,9 +379,10 @@ type(function); #返回 FUNCTION
 
 }
 ```
+UC_DB_CONN_SELF为数据库连接
 
 ```
-获取直接上级，UC_DB_CONN_SELF为数据库连接
+【获取直接上级】
 
 let TaskCall=fn(ctx){
     let dept=ctx["args"]["fm_fybx_info$dept_code"]
@@ -394,3 +400,222 @@ let TaskCall=fn(ctx){
     }
 }
 ```
+
+```
+【申请人上上级负责人】
+
+let TaskCall=fn(ctx){
+    let dept=ctx["args"]["fm_annual2_info$dept_code"]
+    let db=DbOpen(UC_DB_CONN_SELF);
+    let leaderRows=db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='leader' and dept_id=?",dept);
+    if(type(leaderRows)=="ERROR"){
+        return "";
+    }else{
+        let fullPath=db.select("select full_path_id from ou_dept_info where id=?",dept);
+		let arr = fullPath[0]["full_path_id"].split("/");  #提交人部门全路径
+    	if(ctx["creator"] == leaderRows[0]["user_id"].tostring()){  #提交人是本部门负责人，往前找2级
+	    let path = arr[len(arr)-3];
+	    let newLeader = db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='leader' and dept_id=?",path);
+	    return newLeader[0]["user_id"].tostring();
+        }else{
+	    let path = arr[len(arr)-2];
+	    let newLeader = db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='leader' and dept_id=?",path);
+        return newLeader[0]["user_id"].tostring();
+        }
+    }
+}
+```
+### <a id="control_api">控件API</a>
+HOST http://localhost:8880
+
+所有接口都能被二开重写替换，只要符合请求的入参和返回值，均能绑定到控件。
+
+#### <a id="control_order">申请单号</a>
+```
+绑定以code开头的自增单号
+
+/api/common/billcode_gen/{code}
+
+返回字符串，eg：
+
+自定义-20220211-00001
+
+```
+
+#### <a id="control_userinfo">用户信息</a>
+```
+绑定用户信息
+
+/api/user
+
+入参：uid={id}
+
+返回对象，eg：
+
+{"id":5,"name":"wuwei2_m","num":"CY00001","displayName":"吴伟2","gender":"M","mail":"wuwei2_m@cyou-inc.com","mobile":null,"remark":null,"password":"","createTime":"2021-05-21T16:55:53","updateTime":"2021-05-24T16:17:43","extC1":null,"extC2":null,"extC3":null,"extI1":null,"extI2":null,"extI3":null,"extD1":null}
+
+```
+
+#### <a id="control_deptselect">用户部门</a>
+```
+可以获取以code开头的自增单号
+
+/api/user_dept_select
+
+入参：uid={id}
+
+返回列表对象，eg：
+
+[{"label":"流程天下/COO/业务服务体系/企业信息化中心/开发部","value":"7"}]
+
+```
+
+### <a id="demo">使用示例</a>
+
+#### <a id="ass_define">候选人脚本约定</a>
+
+- let TaskCall=fn(ctx){ 返回候选人ID代码 }为获取候选人脚本函数定义，编码返回一个或多个候选人ID
+
+- UC_DB_CONN_SELF为字典管理中定义的公共脚本内容，此处为人/岗/部门库
+
+- ctx["args"]结构为：{"creator":"申请人ID","operator":"节点操作人ID","name":"节点名","parent_operator":"上一节点操作人ID","parent_name":"上一节点名","args":表单提交对象}
+
+- 表单提交对象结构为：模型Code$字段Code，如 ctx["args"]["tablename$filename"] 将获取页面绑定该字段的控件值
+
+#### <a id="demo_simple">串行流程</a>
+
+> 串行流程属于业务中比较简单的场景，直线审批到底。
+
+```
+实现一个IT报修的流程，包含节点：1、直接负责人审批；2、IT人员修复（审批）
+```
+
+**创建模板**
+
+创建一个名为itrepair的申请模板，填写的流程编码默认作为申请单号的前缀，如：itrepair-20220210-0001，点创建，进入下一步
+
+<a href="/pages/imgs/demo_simple_flow_design1.png" target="_blank" title="查看大图">![流程定义](/pages/imgs/demo_simple_flow_design1.png)</a>
+
+**模型定义**
+
+点配置模型，填写模型标识（表名）、描述；点添加数据增加模型字段，默认自带的3个字段不能修改，
+
+字段ID（字段名）、描述、是否必填（表单提交时验证）；点击保存数据，该流程的关联的模型创建成功。
+
+可增加多个模型，完成后点下一步进入表单设计。
+
+<a href="/pages/imgs/demo_simple_flow_design2.png" target="_blank" title="查看大图">![模型定义1](/pages/imgs/demo_simple_flow_design2.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design3.png" target="_blank" title="查看大图">![模型定义2](/pages/imgs/demo_simple_flow_design3.png)</a>
+
+**表单设计**
+
+点配置表单，填写表单标识：`itApply`（表单名）、描述；选择表单上需要显示的按钮（申请有：保存、提交；审批有：同意、拒绝、前加签、转派、协办等），
+
+点保存并设计表单，会创建这个表单并跳转到表单设计器，加入控件并绑定模型字段到控件，保存后能在流程中使用
+
+<a href="/pages/imgs/demo_simple_flow_design4.png" target="_blank" title="查看大图">![表单设计1](/pages/imgs/demo_simple_flow_design4.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design5.png" target="_blank" title="查看大图">![表单设计2](/pages/imgs/demo_simple_flow_design5.png)</a>
+
+布局，控件绑定字段（必填项必须有对应控件，字段不能重复绑定）；高级控件设置数据源，见<a href="#control_api">控件API</a>
+
+```
+控件配置：
+
+申请单号：IT报修主表/申请单编号 （数据接口 http://101.43.138.169:8880/api/common/billcode_gen/itrepair）
+申请人：IT报修主表/申请人ID （数据接口 http://101.43.138.169:8880/api/user）
+所在部门：IT报修主表/所在部门编码 （数据接口 http://101.43.138.169:8880/api/user_dept_select）
+手机：IT报修主表/报修人电话
+工位位置：IT报修主表/报修人座位
+问题描述：IT报修主表/问题
+```
+
+<a href="/pages/imgs/demo_simple_flow_design6.png" target="_blank" title="查看大图">![表单设计3](/pages/imgs/demo_simple_flow_design6.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design7.png" target="_blank" title="查看大图">![表单设计4](/pages/imgs/demo_simple_flow_design7.png)</a>
+
+点击保存，（以上是创建申请单，照此步骤原样再创建一个`itApprove`的表单，选择同意、拒绝按钮供审批使用）点下一步进入流程设计
+
+**流程设计**
+
+点编辑流程图跳转到流程设计器页面，开始画流程图：
+
+1、必须有开始、结束节点；
+2、开始节点一般会连接一个自动提交的任务节点；
+3、绑定任务节点上的表单（上一步创建的）；
+4、编写候选人脚本，返回候选人（之后的脚本都类似，可以封装公共脚本或者拷贝现有的）；
+5、可以构造测试数据，点BUG按钮测试返回的字符串（脚本目的是返回审批人ID），确认无误后保存脚本；
+
+设计完成后点击保存流程图。
+
+<a href="/pages/imgs/demo_simple_flow_design8.png" target="_blank" title="查看大图">![流程设计1](/pages/imgs/demo_simple_flow_design8.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design9.png" target="_blank" title="查看大图">![流程设计2 - 步骤2](/pages/imgs/demo_simple_flow_design9.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design10.png" target="_blank" title="查看大图">![流程设计3 - 新增直接负责人脚本](/pages/imgs/demo_simple_flow_design10.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design11.png" target="_blank" title="查看大图">![流程设计4 - 编写直接负责人脚本](/pages/imgs/demo_simple_flow_design11.png)</a>
+
+```
+assigneeDriectLeader_v1.0脚本内容：
+let TaskCall=fn(ctx){
+    let dept=ctx["args"]["fm_itrepair_info$dept_code"]
+    let db=DbOpen(UC_DB_CONN_SELF);
+    let rows=db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='leader' and dept_id=?",dept);
+    if(type(rows)=="ERROR"){
+        return "";
+    }else{
+    	if(ctx["creator"] == rows[0]["user_id"].tostring()){
+        	let rows=db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='leader' and dept_id=(select parent_id from ou_dept_info where id=?)",dept);
+            return rows[0]["user_id"].tostring();
+        }else{
+        	return rows[0]["user_id"].tostring();
+        }
+    }
+}
+
+测试数据
+{"creator":"7","args":{"fm_itrepair_info$dept_code":"7"}}
+```
+
+注：任务候选人脚本约定说明参考<a href="#ass_define">候选人脚本约定</a>
+
+<a href="/pages/imgs/demo_simple_flow_design12.png" target="_blank" title="查看大图">![流程设计5 - 创建IT操作员脚本](/pages/imgs/demo_simple_flow_design12.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design13.png" target="_blank" title="查看大图">![流程设计6 - 编写IT操作员脚本](/pages/imgs/demo_simple_flow_design13.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design14.png" target="_blank" title="查看大图">![流程设计7](/pages/imgs/demo_simple_flow_design14.png)</a>
+```
+assigneeItOperator_v1.0脚本内容：
+let TaskCall=fn(ctx){
+    let db=DbOpen(UC_DB_CONN_SELF);
+    let rows=db.select("select * from ou_user_dept_post udp left join ou_post_info pi on udp.post_code=pi.code where pi.flag='it'");
+    if(type(rows)=="ERROR"){
+        return "";
+    }else{
+        return rows[0]["user_id"].tostring();
+    }
+}
+
+测试数据
+{}
+```
+
+注：任务候选人脚本约定说明参考<a href="#ass_define">候选人脚本约定</a>
+
+**发布流程**
+
+表单、流程审计完成后点击发布流程，流程将以新版本发布，`itrepair`就能在流程申请中可用了。
+
+<a href="/pages/imgs/demo_simple_flow_design15.png" target="_blank" title="查看大图">![流程设计8](/pages/imgs/demo_simple_flow_design15.png)</a>
+
+<a href="/pages/imgs/demo_simple_flow_design16.png" target="_blank" title="查看大图">![流程设计9](/pages/imgs/demo_simple_flow_design16.png)</a>
+
+**数据准备**
+
+该流程中需要选择申请的物品，在字典管理中新增几个物品，有父子分类，添加一组父子编码的数据；
+
+编码/父编码作为项的关联关系；内容作为显示文本；分类作为这组数据的汇总标记，在之后控件内使用到；描述仅作为备注。
+
+![物品字典项](/pages/imgs/demo_simple_dic_item.png)
